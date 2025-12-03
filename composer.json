@@ -1,0 +1,36 @@
+{
+    "name": "dagasmart/access",
+    "alias": "门禁管理",
+    "description": "出入口门禁安全管理是新型现代化安全管理系统",
+    "type": "library",
+    "version": "1.0.0",
+    "keywords": ["bizadmin", "extension"],
+    "homepage": "https://github.com/dagasmart/access",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Administrator",
+            "email": "dagasmart@163.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "dagasmart/bizadmin": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "DagaSmart\\Access\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "bizadmin": "DagaSmart\\Access\\AccessServiceProvider",
+        "laravel": {
+            "providers": [
+                "DagaSmart\\Access\\AccessServiceProvider"
+            ]
+        }
+    }
+}
