@@ -204,74 +204,28 @@ class AccessDeviceController extends AdminController
                     'padding' => '0.5rem',
                     'borderStyle' => 'dashed',
                 ])
-                ->body('提示：授权可见操作和数据'),
-            amis()->HiddenControl('id', 'ID')->static(),
-            amis()->HiddenControl('parent_id', '上级id')->static(),
-            amis()->HiddenControl('name','名称')->static(),
-            amis()->HiddenControl('slug','标识')->static(),
-            amis()->HiddenControl('code','权限加密')->static(),
-            amis()->HiddenControl('http_path','路由')->static(),
-            amis()->HiddenControl('isAuth','授权操作')->value(true),
-
+                ->body('提示：请确保网络环境可以正常访问'),
             amis()->Tabs()->tabsMode('line')->tabs([
                 //操作权限
-                amis()->Tab()->title('操作权限')->icon('menu')->body([
-                    amis()->CheckboxesControl('auth_oper', '可授权以下操作')
-                        ->source('system/admin_permissions/1000/oper/option')
-                        ->mode('normal')
-                        ->defaultCheckAll(true)
-                        ->checkAll()
-                        ->inline(true)
-                        ->creatable(is_administrator() || is_module_administrator())
-                        ->editable(is_administrator() || is_module_administrator())
-                        ->removable(is_administrator() || is_module_administrator())
-                        ->columnsCount()
-                        ->createBtnLabel('新增选项')
-                        ->addControls([
-                            amis()->TextControl('label','名称')->placeholder('操作权限名称，如：开始上传')->required(),
-                            amis()->TextControl('value','标识')->placeholder('操作权限标识，如：upload')->required(),
-                        ])->addApi(is_administrator() || is_module_administrator() ? '/system/admin_permissions/1000/oper/save' : false)
-                        ->editControls([
-                            amis()->TextControl('label','名称')->placeholder('操作权限名称，如：开始上传')->required(),
-                            amis()->TextControl('value','标识')->placeholder('操作权限标识，如：upload')->disabled(),
-                        ])->editApi(is_administrator() || is_module_administrator() ? '/system/admin_permissions/1000/oper/edit' : false)
-                        ->deleteConfirmText('是否删除自定义项【${label}】，将不可恢复')
-                        ->deleteApi(is_administrator() || is_module_administrator() ? '/system/admin_permissions/1000/oper/${value}/delete' : false)
-                        ->labelClassName(['w-28' => true])
-                        ->inputClassName(['p-1' => true])
-                        ->options(array(current($this->service->options())))
-                        ->onEvent([
-                            'addConfirm' => [
-                                'actions' => [
-                                    [
-                                        'actionType' => 'reload',
-                                        'componentName' => 'auth_oper'
-                                    ],[
-                                        'actionType' => 'reload',
-                                        'componentId' => 'auth_oper_${code}',
-                                    ],
-                                ]
-                            ],
-                            'editConfirm' => [
-                                'actions' => [
-                                    [
-                                        'actionType' => 'reload',
-                                        'componentName' => 'auth_oper'
-                                    ],[
-                                        'actionType' => 'reload',
-                                        'componentId' => 'auth_oper_${code}',
-                                    ],
-                                ]
-                            ],
-                            'deleteConfirm' => [
-                                'actions' => [
-                                    [
-                                        'actionType' => 'custom',
-                                        'script' => 'window.$owl.refreshAmisPage()'
-                                    ]
-                                ]
-                            ]
-                        ]),
+                amis()->Tab()->title('基本信息')->icon('menu')->body([
+                    amis()->StaticExactControl()
+                        ->label('ID')
+                        ->value('${id}'),
+                    amis()->StaticExactControl()
+                        ->label('学校')
+                        ->value('${rel.school.school_name|raw}')
+                        ->static(),
+                    amis()->StaticExactControl()->label('设施主体')->value('${rel.facility.level_name|raw}'),
+                    amis()->StaticExactControl()->label('设备名称')->value('${device_name}'),
+                    amis()->StaticExactControl()->label('设备编码')->value('${device_sn}'),
+                    amis()->StaticExactControl()->label('设备描述')->value('${device_desc}'),
+                    amis()->StaticExactControl()->label('排序')->value('${sort}'),
+                    amis()->SwitchControl()
+                        ->name('state')
+                        ->label('状态')
+                        ->onText('开启')
+                        ->offText('禁用')
+                        ->disabled()
                 ]),
                 //数据权限
                 amis()->Tab()->title('数据权限')->icon('menu')->body([
