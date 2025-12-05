@@ -33,6 +33,12 @@ class AccessDeviceService extends AdminService
         }
     }
 
+    public function searchable($query): void
+    {
+        parent::searchable($query);
+        $query->where(['device_type' => 'access']); //只查门禁设备
+    }
+
     /**
      * 新增或修改后更新关联数据
      * @param $model
