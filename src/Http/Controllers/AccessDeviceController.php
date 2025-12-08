@@ -35,16 +35,16 @@ class AccessDeviceController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
-                amis()->TableColumn('school_id', '学校')
+                amis()->TableColumn('enterprise_id', '学校')
                     ->searchable([
-                        'name' => 'school_id',
+                        'name' => 'enterprise_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,
-                        'options' => $this->service->getSchoolAll(),
+                        'options' => $this->service->getEnterpriseAll(),
                     ])
                     ->set('type', 'select')
-                    ->set('options', $this->service->getSchoolAll())
+                    ->set('options', $this->service->getEnterpriseAll())
                     ->set('value', '${rel.school.id}')
                     ->set('static', true)
                     ->width(200),
@@ -89,17 +89,17 @@ class AccessDeviceController extends AdminController
 	public function form($isEdit = false): Form
     {
 		return $this->baseForm()->body([
-            amis()->SelectControl('school_id', '学校')
-                ->options($this->service->getSchoolAll())
-                ->value('${rel.school_id}')
+            amis()->SelectControl('enterprise_id', '学校')
+                ->options($this->service->getEnterpriseAll())
+                ->value('${rel.enterprise_id}')
                 ->searchable()
                 ->clearable()
                 ->required(),
             amis()->TreeSelectControl('facility_id', '设施主体')
-                ->source(admin_url('biz/school/${school_id||0}/facility/options'))
+                ->source(admin_url('biz/school/${enterprise_id||0}/facility/options'))
                 ->options($this->service->options())
                 ->value('${rel.facility.id}')
-                ->disabledOn('${!school_id}')
+                ->disabledOn('${!enterprise_id}')
                 ->onlyLeaf()
                 ->searchable()
                 ->clearable()
@@ -128,16 +128,16 @@ class AccessDeviceController extends AdminController
     {
 		return $this->baseDetail()->body([
             amis()->StaticExactControl('id','ID')->visibleOn('${id}'),
-            amis()->SelectControl('school_id', '学校')
-                ->options($this->service->getSchoolAll())
+            amis()->SelectControl('enterprise_id', '学校')
+                ->options($this->service->getEnterpriseAll())
                 ->value('${rel.school.id}')
                 ->searchable()
                 ->clearable()
                 ->required(),
             amis()->TreeSelectControl('parent_id', '选择主体')
-                ->source(admin_url('biz/school/${school_id||0}/facility/options'))
+                ->source(admin_url('biz/school/${enterprise_id||0}/facility/options'))
                 ->options($this->service->options())
-                ->disabledOn('${!school_id}')
+                ->disabledOn('${!enterprise_id}')
                 ->searchable()
                 ->clearable(),
             amis()->TextControl('device_name', '设备名称')
