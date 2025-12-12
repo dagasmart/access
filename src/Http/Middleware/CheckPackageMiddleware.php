@@ -12,7 +12,7 @@ class CheckPackageMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!class_exists(\DagaSmart\Organization\OrganizationServiceProvider::class)) {
-            return Admin::response()->fail('尚未安装软件《基础安装包》');
+            return Admin::response()->fail('尚未安装软件《基数安装包》');
         }
         return $next($request);
     }

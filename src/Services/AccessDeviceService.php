@@ -22,7 +22,11 @@ class AccessDeviceService extends AdminService
     public function loadRelations($query): void
     {
         $query->whereHas('rel', function ($query) {
-            $query->where('module', admin_current_module())->where('mer_id', admin_mer_id());
+            $mer_id = admin_mer_id();
+            $query->where('module', admin_current_module())
+                ->when($mer_id, function ($query) use ($mer_id) {
+                    $query->where('mer_id', $mer_id);
+                });
         })->with(['rel']);
     }
 
@@ -65,7 +69,7 @@ class AccessDeviceService extends AdminService
     }
 
     /**
-     * 学校列表
+     * 机构单位列表
      */
     public function getEnterpriseAll(): array
     {
