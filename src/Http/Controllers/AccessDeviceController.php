@@ -7,6 +7,7 @@ use DagaSmart\BizAdmin\Controllers\AdminController;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
+use DagaSmart\Organization\Enums\Enum;
 
 
 /**
@@ -56,10 +57,10 @@ class AccessDeviceController extends AdminController
                     ->searchable([
                         'name' => 'device_pos',
                         'type' => 'select',
-                        'options' => [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']]
+                        'options' => Enum::DevicePos
                     ])
                     ->set('type', 'select')
-                    ->set('options', [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']])
+                    ->set('options', Enum::DevicePos)
                     ->set('static', true),
                 amis()->TableColumn('device_name', '设备名称')->width(200),
                 amis()->TableColumn('device_sn','设备编号')
@@ -110,6 +111,16 @@ class AccessDeviceController extends AdminController
                 ->clearable()
                 ->required(),
             amis()->TextControl('device_name', '设备名称')
+                ->placeholder('例:智能门禁机-进-1')
+                ->clearable()
+                ->required(),
+            amis()->TreeSelectControl('device_brand', '设备品牌')
+                ->options(Enum::brand('access'))
+                ->placeholder('请选择品牌')
+                ->clearable()
+                ->required(),
+            amis()->TextControl('device_model', '设备型号')
+                ->placeholder('设备型号，如ET293')
                 ->clearable()
                 ->required(),
             amis()->InputGroupControl('device_sn','设备编号')->body([
@@ -118,10 +129,10 @@ class AccessDeviceController extends AdminController
                     ->clearable()
                     ->required(),
                 amis()->SelectControl('device_pos','安装位置')
-                    ->options([['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']])
+                    ->options(Enum::DevicePos)
                     ->placeholder('安装位置')
                     ->required(),
-            ]),
+            ])->required(),
             amis()->TextareaControl('device_desc', '设备描述')
                 ->clearable(),
             amis()->NumberControl('sort', '排序')
@@ -146,17 +157,34 @@ class AccessDeviceController extends AdminController
                 ->searchable()
                 ->clearable()
                 ->required(),
-            amis()->TreeSelectControl('parent_id', '选择主体')
+            amis()->TreeSelectControl('facility_id', '选择主体')
                 ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
                 ->options($this->service->options())
                 ->disabledOn('${!enterprise_id}')
+                ->value('${rel.facility.id}')
                 ->searchable()
                 ->clearable(),
             amis()->TextControl('device_name', '设备名称')
                 ->clearable()
                 ->required(),
-            amis()->TextControl('device_code', '设备编码')
+            amis()->TreeSelectControl('device_brand', '设备品牌')
+                ->options(Enum::brand('access'))
+                ->placeholder('请选择品牌')
+                ->clearable()
+                ->required(),
+            amis()->TextControl('device_model', '设备型号')
+                ->placeholder('设备型号，如ET293')
                 ->clearable(),
+//            amis()->TextControl('device_model', '设备型号')
+//                ->clearable(),
+            amis()->TextControl('device_sn', '设备编号')
+                ->placeholder('请填写设备编号，如sn')
+                ->clearable()
+                ->required(),
+            amis()->SelectControl('device_pos','安装位置')
+                ->options(Enum::DevicePos)
+                ->placeholder('安装位置')
+                ->required(),
             amis()->TextareaControl('device_desc', '设备描述')
                 ->clearable(),
             amis()->NumberControl('sort', '排序')
