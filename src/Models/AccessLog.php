@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * 基础-学生表
  */
-class AccessDevice extends Model
+class AccessLog extends Model
 {
 
-	protected $table = 'biz_device';
+	protected $table = 'biz_access_log';
     protected $primaryKey = 'id';
 
     public $timestamps = true;

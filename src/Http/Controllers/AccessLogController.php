@@ -2,9 +2,14 @@
 
 namespace DagaSmart\Access\Http\Controllers;
 
-class AccessLogController
+use DagaSmart\BizAdmin\Controllers\AdminController;
+use DagaSmart\Access\Services\AccessLogService;
+use DagaSmart\BizAdmin\Renderers\Form;
+use DagaSmart\BizAdmin\Renderers\Page;
+
+class AccessLogController extends AdminController
 {
-    protected string $serviceName = AccessDeviceService::class;
+    protected string $serviceName = AccessLogService::class;
 
     public function list(): Page
     {
@@ -66,7 +71,6 @@ class AccessLogController
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
-                        $this->rowSetAction('drawer', 'auto'),
                         $this->rowEditButton(true,250),
                         $this->rowDeleteButton(),
                     ])
