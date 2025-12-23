@@ -1,7 +1,7 @@
 <?php
 
 use DagaSmart\Access\Http\Controllers;
-use DagaSmart\Access\Http\Middleware\CheckPackageMiddleware;
+use DagaSmart\Access\Http\Middleware;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Router;
 use DagaSmart\BizAdmin\Middleware\Permission;
@@ -16,7 +16,7 @@ use DagaSmart\BizAdmin\Middleware\Authenticate;
 
 Route::group([
     'prefix' => 'biz',
-    'middleware' => [CheckPackageMiddleware::class],
+    'middleware' => [Middleware\CheckPackageMiddleware::class],
 ], function (Router $router) {
     $router->resource('access/device', Controllers\AccessDeviceController::class);
     $router->resource('access/log', Controllers\AccessLogController::class);
