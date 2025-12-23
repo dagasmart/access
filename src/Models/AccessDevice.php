@@ -7,7 +7,7 @@ use DagaSmart\Organization\Models\EnterPriseFacilityDevice;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * 基础-学生表
+ * 门禁设备模型
  */
 class AccessDevice extends Model
 {
