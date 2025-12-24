@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 
 /**
- * 门禁-设备服务类
+ * 门禁设备-服务类
  *
  * @method AccessDevice getModel()
  * @method AccessDevice|Builder query()
@@ -43,6 +43,17 @@ class AccessDeviceService extends AdminService
     {
         parent::searchable($query);
         $query->where(['device_type' => 'access']); //只查门禁设备
+    }
+
+    /**
+     * 保存前
+     * @param $data
+     * @param $primaryKey
+     * @return void
+     */
+    public function saving(&$data, $primaryKey = null): void
+    {
+        $data['device_type'] = 'access'; //门禁
     }
 
     /**
