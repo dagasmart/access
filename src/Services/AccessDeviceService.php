@@ -66,6 +66,7 @@ class AccessDeviceService extends AdminService
     {
         parent::saved($model, $isEdit);
         $request = request()->all();
+        if ($model->id && !empty($request['enterprise_id']) && !empty($request['facility_id'])) {
         $data = [
             'enterprise_id' => $request['enterprise_id'],
             'facility_id' => $request['facility_id'],
@@ -77,6 +78,7 @@ class AccessDeviceService extends AdminService
             }
             EnterpriseFacilityDevice::query()->insert($data);
         });
+        }
     }
 
     /**
