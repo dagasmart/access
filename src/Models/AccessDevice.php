@@ -2,7 +2,6 @@
 
 namespace DagaSmart\Access\Models;
 
-use DagaSmart\Organization\Models\Model;
 use DagaSmart\Organization\Models\EnterPriseFacilityDevice;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -12,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class AccessDevice extends Model
 {
 
-	protected $table = 'biz_device';
+    protected $table = 'biz_device';
     protected $primaryKey = 'id';
 
     public $timestamps = true;

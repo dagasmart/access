@@ -4,6 +4,7 @@ namespace DagaSmart\Access\Models;
 
 use DagaSmart\BizAdmin\Models\BaseModel;
 use DagaSmart\BizAdmin\Scopes\ActiveScope;
+use DagaSmart\Organization\Models\Enterprise;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**

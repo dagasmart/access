@@ -13,6 +13,4 @@ use DagaSmart\BizAdmin\Services\AdminService as BaseAdminService;
 class AdminService extends BaseAdminService
 {
 
-
-
 }
