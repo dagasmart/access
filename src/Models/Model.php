@@ -4,8 +4,6 @@ namespace DagaSmart\Access\Models;
 
 use DagaSmart\BizAdmin\Models\BaseModel;
 use DagaSmart\BizAdmin\Scopes\ActiveScope;
-use DagaSmart\Organization\Models\Enterprise;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  *基座模型
@@ -19,7 +17,7 @@ class Model extends BaseModel
 
     public function __construct()
     {
-        if(!isset($this->connection)){
+        if (!isset($this->connection)) {
             $this->setConnection($this->connection);
         }
         parent::__construct();
@@ -29,12 +27,6 @@ class Model extends BaseModel
     {
         static::addGlobalScope(new ActiveScope(self::schema));
         parent::booted();
-    }
-
-    //关联机构
-    public function base(): hasMany
-    {
-        return $this->hasMany(Enterprise::class, 'id', 'enterprise_id');
     }
 
 }
