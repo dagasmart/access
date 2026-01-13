@@ -28,6 +28,24 @@ class AccessLogController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
+                amis()->TableColumn('user_name','用户姓名')
+                    ->searchable([
+                        'name' => 'device_sn',
+                        'type' => 'input-text',
+                    ])
+                    ->set('fixed','left'),
+                amis()->TableColumn('device_pos','行为事件')
+                    ->searchable([
+                        'name' => 'device_pos',
+                        'type' => 'select',
+                        'options' => [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']]
+                    ])
+                    ->set('type', 'mapping')
+                    ->set('map', [
+                        'in' => '<span class="label label-success rounded-full border">进口入场</span>',
+                        'out' => '<span class="label label-danger rounded-full border">出口离场</span>'
+                    ])
+                    ->set('static', true),
                 amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
                     ->searchable([
                         'name' => 'enterprise_id',
@@ -45,25 +63,13 @@ class AccessLogController extends AdminController
                         'options' => $this->service->options(),
                     ])
                     ->width(200),
-                amis()->TableColumn('device_pos','安装位置')
-                    ->searchable([
-                        'name' => 'device_pos',
-                        'type' => 'select',
-                        'options' => [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']]
-                    ])
-                    ->set('type', 'select')
-                    ->set('options', [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']])
-                    ->set('static', true),
-                amis()->TableColumn('device_name', '设备名称')->width(200),
-                amis()->TableColumn('device_sn','设备编号')
+                amis()->TableColumn('rel.device.device_name', '设备名称')->width(200),
+                amis()->TableColumn('rel.device.device_sn','设备编号')
                     ->searchable([
                         'name' => 'device_sn',
                         'type' => 'input-text',
                     ])
                     ->width(150),
-                amis()->TableColumn('state', '状态')
-                    ->set('type','status'),
-                amis()->TableColumn('sort','排序'),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')
                     ->sortable()
@@ -71,13 +77,12 @@ class AccessLogController extends AdminController
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
-                        $this->rowEditButton(true,250),
                         $this->rowDeleteButton(),
                     ])
                 ])
                     ->set('align','center')
                     ->set('fixed','right')
-                    ->set('width',180)
+                    ->set('width',100)
             ]);
 
         return $this->baseList($crud);

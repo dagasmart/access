@@ -27,7 +27,7 @@ class AccessLogService extends AdminService
                 ->when($mer_id, function ($query) use ($mer_id) {
                     $query->where('mer_id', $mer_id);
                 });
-        })->with(['rel']);
+        })->with(['rel','user']);
     }
 
     public function sortable($query): void
@@ -42,7 +42,7 @@ class AccessLogService extends AdminService
     public function searchable($query): void
     {
         parent::searchable($query);
-        $query->where(['device_type' => 'access']); //只查门禁设备
+        //$query->where(['device_type' => 'access']); //只查门禁设备
     }
 
     /**

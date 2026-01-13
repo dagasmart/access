@@ -27,17 +27,31 @@ class AccessServiceProvider extends ServiceProvider
         ],
         [
             'parent' => '门禁管家',
-            'title' => '进出记录',
-            'url' => '/biz/access/log',
-            'url_type' => 1,
-            'icon' => 'carbon:catalog-publish',
-        ],
-        [
-            'parent' => '门禁管家',
             'title' => '数据分发',
             'url' => '/biz/access/dispatch',
             'url_type' => 1,
             'icon' => 'fluent-mdl2:distribute-down',
+        ],
+        [
+            'parent' => '门禁管家',
+            'title' => '用户管理',
+            'url' => '/biz/access/user',
+            'url_type' => 1,
+            'icon' => 'lucide:user-cog',
+        ],
+        [
+            'parent' => '门禁管家',
+            'title' => '权限管理',
+            'url' => '/biz/access/permission',
+            'url_type' => 1,
+            'icon' => 'icon-park-outline:permissions',
+        ],
+        [
+            'parent' => '门禁管家',
+            'title' => '进出记录',
+            'url' => '/biz/access/log',
+            'url_type' => 1,
+            'icon' => 'carbon:catalog-publish',
         ],
         [
             'parent' => '门禁管家',
