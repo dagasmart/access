@@ -4,19 +4,19 @@ namespace DagaSmart\Access\Http\Controllers;
 
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
-use DagaSmart\Access\Services\AccessDeviceService;
+use DagaSmart\Access\Services\AccessUserService;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
 use DagaSmart\Organization\Enums\Enum;
 
 
 /**
- * 基础-设备类
+ * 基础-门禁用户类
  *
- * @property AccessDeviceService $service
+ * @property AccessUserService $service
  */
-class AccessDeviceController extends AdminController
+class AccessUserController extends AdminController
 {
-	protected string $serviceName = AccessDeviceService::class;
+	protected string $serviceName = AccessUserService::class;
 
 	public function list(): Page
     {
@@ -35,22 +35,19 @@ class AccessDeviceController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
-                amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
+                amis()->TableColumn('user_name', '用户')
+                    ->searchable([
+                        'name' => 'user_name',
+                        'type' => 'input-text'
+                    ])
+                    ->width(100),
+                amis()->TableColumn('rel.enterprise.enterprise_name', is_school_module() ? '学校' : '机构单位')
                     ->searchable([
                         'name' => 'enterprise_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,
                         'options' => $this->service->getEnterpriseAll(),
-                    ])
-                    ->width(200),
-                amis()->TableColumn('rel.facility.level_name', '设施主体')
-                    ->searchable([
-                        'name' => 'facility_id',
-                        'type' => 'tree-select',
-                        'multiple' => true,
-                        'source' => admin_url('biz/access/enterprise/${enterprise_id||0}/facility/options'),
-                        'options' => $this->service->options(),
                     ])
                     ->width(200),
                 amis()->TableColumn('device_pos','安装位置')
