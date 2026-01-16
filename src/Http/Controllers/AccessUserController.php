@@ -41,7 +41,7 @@ class AccessUserController extends AdminController
                         'type' => 'input-text'
                     ])
                     ->width(100),
-                amis()->TableColumn('rel.enterprise.enterprise_name', is_school_module() ? '学校' : '机构单位')
+                amis()->TableColumn('rel.enterprise.enterprise_name', '单位信息')
                     ->searchable([
                         'name' => 'enterprise_id',
                         'type' => 'select',
@@ -49,6 +49,8 @@ class AccessUserController extends AdminController
                         'searchable' => true,
                         'options' => $this->service->getEnterpriseAll(),
                     ])
+                    ->set('type', 'mapping')
+                    ->set('map', '${rel.enterprise.enterprise_name}')
                     ->width(200),
                 amis()->TableColumn('device_pos','安装位置')
                     ->searchable([
