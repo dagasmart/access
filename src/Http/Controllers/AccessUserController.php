@@ -6,7 +6,8 @@ use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\Access\Services\AccessUserService;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
-use DagaSmart\Organization\Enums\Enum;
+use DagaSmart\Access\Enums\Enum;
+use PhpMqtt\Client\Facades\MQTT;
 
 
 /**
@@ -32,14 +33,17 @@ class AccessUserController extends AdminController
             ->footable(['expand' => 'first'])
             ->autoFillHeight(true)
             ->columns([
-                amis()->TableColumn('id', 'ID')
+                amis()->TableColumn('user_id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
-                amis()->TableColumn('user_name', '用户')
-                    ->searchable([
-                        'name' => 'user_name',
-                        'type' => 'input-text'
-                    ])
+                amis()->TableColumn('user_card', '用户')
+                    ->searchable(amis()->FormControl()->body([
+                        amis()->TextControl('user_name', '用户名')->placeholder('请输入查找的用户名')->clearable(),
+                        amis()->TextControl('id_card', '身份证号')->placeholder('请输入查找的身份证号')->clearable(),
+                    ]))
+                    ->set('type', 'tpl')
+                    ->set('tpl', '${user_name}<h5 class="m-0 mt-1.5 text-secondary">${id_card}</h5>')
+                    ->align('center')
                     ->width(100),
                 amis()->TableColumn('rel.enterprise.enterprise_name', '单位信息')
                     ->searchable([
@@ -49,45 +53,60 @@ class AccessUserController extends AdminController
                         'searchable' => true,
                         'options' => $this->service->getEnterpriseAll(),
                     ])
-                    ->set('type', 'mapping')
-                    ->set('map', '${rel.enterprise.enterprise_name}')
+                    ->set('type', 'tpl')
+                    ->set('tpl', '${rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">${rel.grade.grade_name}</h5><h5 class="m-0 mt-1.5 text-secondary">${rel.classes.classes_name}</h5>')
                     ->width(200),
-                amis()->TableColumn('device_pos','安装位置')
-                    ->searchable([
-                        'name' => 'device_pos',
-                        'type' => 'select',
-                        'options' => Enum::DevicePos
-                    ])
-                    ->set('type', 'select')
-                    ->set('options', Enum::DevicePos)
+                amis()->TableColumn('user_avatar','照片')
+                    ->set('type', 'avatar')
+                    ->set('src', '${user_avatar}')
+                    ->set('size', 60)
                     ->set('static', true),
-                amis()->TableColumn('device_name', '设备名称')->width(200),
-                amis()->TableColumn('device_sn','设备编号')
-                    ->searchable([
-                        'name' => 'device_sn',
-                        'type' => 'input-text',
-                        'placeholder' => '请输入设备编号'
-                    ])
-                    ->copyable()
-                    ->width(150),
+                amis()->TableColumn('user_type', '用户类型')
+                    ->searchable(
+                        amis()->FormControl()->body([
+                            amis()->SelectControl('user_type','用户类型')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
+                        ])
+
+//                        [
+//                        'name' => 'user_type',
+//                        'type' => 'select',
+//                        'multiple' => true,
+//                        'clearable' => true,
+//                        'checkAll' => true,
+//                        'options' => Enum::user_type(),
+//                        ]
+                    )
+                    ->set('type', 'select')
+                    ->set('options', Enum::user_type())
+                    ->set('static', true),
                 amis()->TableColumn('state', '状态')
-                    ->set('type','status'),
-                amis()->TableColumn('sort','排序'),
+                    ->set('type','switch')
+                    ->set('onText','正常')
+                    ->set('offText','停用'),
+                amis()->TableColumn('sort','排序')->sortable(),
                 amis()->TableColumn('updated_at', '更新时间')
+                    ->searchable([
+                        'name' => 'updated_at',
+                        'type' => 'select',
+                        'multiple' => false,
+                        'searchable' => true,
+                        'options' => $this->service->getEnterpriseAll(),
+                    ])
                     ->type('datetime')
                     ->sortable()
                     ->width(150),
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
-                        $this->rowSetAction('drawer', 'auto'),
                         $this->rowEditButton(true,250),
                         $this->rowDeleteButton(),
+                        $this->rowSetAction('drawer', 'auto'),
+                        $this->rowSendAction('drawer', 'auto'),
                     ])
                 ])
                     ->set('align','center')
                     ->set('fixed','right')
-                    ->set('width',180)
+                    ->set('width',150)
             ]);
 
 		return $this->baseList($crud);
@@ -116,7 +135,7 @@ class AccessUserController extends AdminController
                 ->clearable()
                 ->required(),
             amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->options(Enum::brand('access'))
+                ->options(Enum::user_type('access'))
                 ->placeholder('请选择品牌')
                 ->clearable()
                 ->required(),
@@ -128,10 +147,6 @@ class AccessUserController extends AdminController
                 amis()->TextControl('device_sn', '设备编号')
                     ->placeholder('请填写设备编号，如sn')
                     ->clearable()
-                    ->required(),
-                amis()->SelectControl('device_pos','安装位置')
-                    ->options(Enum::DevicePos)
-                    ->placeholder('安装位置')
                     ->required(),
             ])->required(),
             amis()->TextareaControl('device_desc', '设备描述')
@@ -169,7 +184,7 @@ class AccessUserController extends AdminController
                 ->clearable()
                 ->required(),
             amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->options(Enum::brand('access'))
+                ->options(Enum::user_type('access'))
                 ->placeholder('请选择品牌')
                 ->clearable()
                 ->required(),
@@ -181,10 +196,6 @@ class AccessUserController extends AdminController
             amis()->TextControl('device_sn', '设备编号')
                 ->placeholder('请填写设备编号，如sn')
                 ->clearable()
-                ->required(),
-            amis()->SelectControl('device_pos','安装位置')
-                ->options(Enum::DevicePos)
-                ->placeholder('安装位置')
                 ->required(),
             amis()->TextareaControl('device_desc', '设备描述')
                 ->clearable(),
@@ -221,7 +232,7 @@ class AccessUserController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${device_name}</font>】' .$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】' .$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(
@@ -285,6 +296,82 @@ class AccessUserController extends AdminController
             ]),
 
         ]);
+    }
+
+
+    protected function rowSendAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
+    {
+        $title  = $title ?: '下发到设备';
+        $action = amis()->LinkAction()->link($this->getEditPath());
+
+        if ($dialog) {
+            $form = $this
+                ->sendForm()
+                ->api($this->send())
+                ->redirect('');
+
+            if ($dialog === 'drawer') {
+                $action = amis()->DrawerAction()->drawer(
+                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】' .$title)->body($form)->size($dialogSize)
+                );
+            } else {
+                $action = amis()->DialogAction()->dialog(
+                    amis()->Dialog()->title($title)->body($form)->size($dialogSize)
+                );
+            }
+        }
+
+        $action->label($title)->level('link');
+
+        return AdminPipeline::handle(AdminPipeline::PIPE_EDIT_ACTION, $action);
+    }
+
+    private function sendForm(): Form
+    {
+        return $this->baseForm()->body([
+            amis()->Alert()
+                ->showIcon()
+                ->showCloseButton()
+                ->style([
+                    'padding' => '0.5rem',
+                    'borderStyle' => 'dashed',
+                ])
+                ->body('提示：请确保网络环境可以正常访问'),
+            amis()->Tabs()->tabsMode('line')->tabs([
+                //设备列表
+                amis()->Tab()->title('设备列表')->icon('menu')->body([
+
+
+                ]),
+            ]),
+
+        ]);
+    }
+
+    public function send()
+    {
+        $data = [
+            'client_id' => 'f3631cb0-a66a5c60',
+            'version' => '0.2',
+            'cmd' => 'create_face',
+            'per_id' => '275191',
+            'face_id' => '275191',
+            'per_name' => '简子岚',
+            'idcardNum' => '520327201101030145',
+            'img_data' => '',
+            'img_url' => 'http://bjylt.oss-cn-chengdu.aliyuncs.com/image/2026-01/15/520327201101030145.jpg',
+            'idcardper' => '520327201101030145',
+            's_time' => 0,
+            'e_time' => 86400,
+            'per_type' => 1,
+            'usr_type' => 1,
+            'auth_type' => 1,
+            'auth_type_name' => 'c2NobWlkdA==',
+            'dscode_img' => 'fffffff'
+        ];
+        $topic = 'face/f3631cb0-a66a5c60/request';
+        MQTT::publish($topic, json_encode($data, JSON_UNESCAPED_UNICODE));
+        return true;
     }
 
 

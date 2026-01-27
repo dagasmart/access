@@ -71,8 +71,12 @@ class AccessDeviceController extends AdminController
                     ])
                     ->copyable()
                     ->width(150),
-                amis()->TableColumn('state', '状态')
+                amis()->TableColumn('online', '在线状态')
                     ->set('type','status'),
+                amis()->TableColumn('state', '启用状态')
+                    ->set('type','switch')
+                    ->set('onText','开启')
+                    ->set('offText','禁用'),
                 amis()->TableColumn('sort','排序'),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')

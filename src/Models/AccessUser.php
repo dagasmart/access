@@ -17,6 +17,11 @@ class AccessUser extends Model
 
     public $timestamps = true;
 
+    public function getUserAvatarAttribute($value): ?string
+    {
+        return admin_image_url($value);
+    }
+
     public function rel(): hasOne
     {
         if ($this->user_type == 'worker') {
