@@ -8,22 +8,6 @@ enum Enum
 {
 
     /**
-     * 用户类型 非学校模块
-     */
-    public const array USER_TYPE = [
-        ['value' => 'worker', 'label' => '员工', 'color' => 'success'],
-        ['value' => 'visitor', 'label' => '访客', 'color' => 'default'],
-    ];
-
-    /**
-     * 用户类型 学校模块
-     */
-    public const array USER_TYPE_SCHOOL = [
-        ['value' => 'student', 'label' => '学生', 'color' => 'info'],
-        ['value' => 'patriarch', 'label' => '家长', 'color' => 'warning'],
-    ];
-
-    /**
      * 用户类型
      * @return array|array[]
      */

@@ -63,18 +63,7 @@ class AccessUserController extends AdminController
                     ->set('static', true),
                 amis()->TableColumn('user_type', '用户类型')
                     ->searchable(
-                        amis()->FormControl()->body([
-                            amis()->SelectControl('user_type','用户类型')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
-                        ])
-
-//                        [
-//                        'name' => 'user_type',
-//                        'type' => 'select',
-//                        'multiple' => true,
-//                        'clearable' => true,
-//                        'checkAll' => true,
-//                        'options' => Enum::user_type(),
-//                        ]
+                        amis()->SelectControl('user_type')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
                     )
                     ->set('type', 'select')
                     ->set('options', Enum::user_type())
@@ -85,13 +74,9 @@ class AccessUserController extends AdminController
                     ->set('offText','停用'),
                 amis()->TableColumn('sort','排序')->sortable(),
                 amis()->TableColumn('updated_at', '更新时间')
-                    ->searchable([
-                        'name' => 'updated_at',
-                        'type' => 'select',
-                        'multiple' => false,
-                        'searchable' => true,
-                        'options' => $this->service->getEnterpriseAll(),
-                    ])
+                    ->searchable(
+                        amis()->DateRangeControl('updated_at')->valueFormat('YYYY-MM-DD HH:mm:ss'),
+                    )
                     ->type('datetime')
                     ->sortable()
                     ->width(150),
@@ -101,7 +86,7 @@ class AccessUserController extends AdminController
                         $this->rowEditButton(true,250),
                         $this->rowDeleteButton(),
                         $this->rowSetAction('drawer', 'auto'),
-                        $this->rowSendAction('drawer', 'auto'),
+                        $this->rowSendAction('drawer', 'lg'),
                     ])
                 ])
                     ->set('align','center')
@@ -312,7 +297,7 @@ class AccessUserController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】' .$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->resizable()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】' .$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(
@@ -340,6 +325,29 @@ class AccessUserController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 //设备列表
                 amis()->Tab()->title('设备列表')->icon('menu')->body([
+                    amis()->TableControl('device_data', false)
+                        ->addable()
+                        ->copyable()
+                        ->editable()
+                        ->removable()
+                        ->showIndex()
+                        ->perPage(3)
+                        ->autoFillHeight()
+                        ->columns([
+                            amis()->TableColumn('enterprise_id', '机构单位')
+                                ->searchable()
+                                ->set('type', 'select')
+                                ->set('options', $this->service->getEnterpriseAll())
+                                ->set('required', true),
+                            amis()->TableColumn('facility_id', '设施主体')
+                                ->set('type', 'select')
+                                ->set('options', $this->service->options())
+                                ->set('static', false)
+                                ->set('required', true),
+                            amis()->TableColumn('device_id', '设备')
+                                ->sortable(),
+
+                    ])
 
 
                 ]),

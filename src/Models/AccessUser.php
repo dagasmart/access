@@ -15,6 +15,10 @@ class AccessUser extends Model
 	protected $table = 'biz_access_user';
     protected $primaryKey = 'id';
 
+    protected $casts = [
+        'updated_at' => 'datetime',
+    ];
+
     public $timestamps = true;
 
     public function getUserAvatarAttribute($value): ?string
