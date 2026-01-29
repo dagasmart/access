@@ -28,6 +28,11 @@ class AccessLogController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
+                amis()->TableColumn('user.user_avatar','照片')
+                    ->set('type', 'avatar')
+                    ->set('src', '${user.user_avatar}')
+                    ->set('size', 'small')
+                    ->set('static', true),
                 amis()->TableColumn('user_name','用户姓名')
                     ->searchable([
                         'name' => 'device_sn',
@@ -70,10 +75,16 @@ class AccessLogController extends AdminController
                         'type' => 'input-text',
                     ])
                     ->width(150),
-                amis()->TableColumn('updated_at', '更新时间')
+                amis()->TableColumn('created_at', '发生时间')
                     ->type('datetime')
                     ->sortable()
                     ->width(150),
+                amis()->TableColumn('scene_photo','现场抓拍')
+                    ->set('type', 'image')
+                    ->set('src', '${scene_photo}')
+                    ->set('width', 30)
+                    ->set('height', 30)
+                    ->set('static', true),
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),

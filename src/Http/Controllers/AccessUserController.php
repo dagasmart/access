@@ -7,7 +7,7 @@ use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\Access\Services\AccessUserService;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
 use DagaSmart\Access\Enums\Enum;
-use PhpMqtt\Client\Facades\MQTT;
+//use PhpMqtt\Client\Facades\MQTT;
 
 
 /**
@@ -378,7 +378,7 @@ class AccessUserController extends AdminController
             'dscode_img' => 'fffffff'
         ];
         $topic = 'face/f3631cb0-a66a5c60/request';
-        MQTT::publish($topic, json_encode($data, JSON_UNESCAPED_UNICODE));
+        //MQTT::publish($topic, json_encode($data, JSON_UNESCAPED_UNICODE));
         return true;
     }
 

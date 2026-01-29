@@ -16,6 +16,11 @@ class AccessLog extends Model
 
     public $timestamps = true;
 
+    public function getScenePhotoAttribute($value): ?string
+    {
+        return admin_image_url($value);
+    }
+
     public function rel(): hasOne
     {
         return $this->hasOne(EnterpriseFacilityDevice::class,'device_id','device_id')->with(['enterprise','facility','device']);
