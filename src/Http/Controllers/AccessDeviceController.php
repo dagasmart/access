@@ -35,6 +35,15 @@ class AccessDeviceController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
+                amis()->TableColumn('device_name', '设备名称')->width(200),
+                amis()->TableColumn('device_sn','设备编号')
+                    ->searchable([
+                        'name' => 'device_sn',
+                        'type' => 'input-text',
+                        'placeholder' => '请输入设备编号'
+                    ])
+                    ->copyable()
+                    ->width(150),
                 amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
                     ->searchable([
                         'name' => 'enterprise_id',
@@ -62,18 +71,16 @@ class AccessDeviceController extends AdminController
                     ->set('type', 'select')
                     ->set('options', Enum::DevicePos)
                     ->set('static', true),
-                amis()->TableColumn('device_name', '设备名称')->width(200),
-                amis()->TableColumn('device_sn','设备编号')
-                    ->searchable([
-                        'name' => 'device_sn',
-                        'type' => 'input-text',
-                        'placeholder' => '请输入设备编号'
-                    ])
-                    ->copyable()
-                    ->width(150),
                 amis()->TableColumn('online', '在线状态')
-                    ->set('type','status'),
-                amis()->TableColumn('state', '启用状态')
+                    ->set('type','mapping')
+                    ->set('map', ['*' => [
+                        'type' => 'status',
+                        'source' => [
+                            ['label' => '已离线', 'icon' => 'fail'],
+                            ['label' => '运行中', 'icon' => 'success']
+                        ]
+                    ]]),
+                amis()->TableColumn('state', '使用状态')
                     ->set('type','switch')
                     ->set('onText','开启')
                     ->set('offText','禁用'),
@@ -84,7 +91,7 @@ class AccessDeviceController extends AdminController
                     ->width(150),
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
-                        $this->rowShowButton(true),
+                        $this->rowShowButton(true,250),
                         $this->rowSetAction('drawer', 'auto'),
                         $this->rowEditButton(true,250),
                         $this->rowDeleteButton(),
@@ -146,7 +153,7 @@ class AccessDeviceController extends AdminController
                 ->max(100)
                 ->size('xs')
                 ->value(10),
-            amis()->SwitchControl('state','状态')
+            amis()->SwitchControl('state','使用状态')
                 ->onText('开启')
                 ->offText('禁用')
                 ->value(true),
@@ -156,54 +163,58 @@ class AccessDeviceController extends AdminController
 	public function detail(): Form
     {
 		return $this->baseDetail()->body([
-            amis()->StaticExactControl('id','ID')->visibleOn('${id}'),
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.school.id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '选择主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->disabledOn('${!enterprise_id}')
-                ->value('${rel.facility.id}')
-                ->searchable()
-                ->clearable(),
-            amis()->TextControl('device_name', '设备名称')
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->options(Enum::brand('access'))
-                ->placeholder('请选择品牌')
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_model', '设备型号')
-                ->placeholder('设备型号，如ET293')
-                ->clearable(),
-//            amis()->TextControl('device_model', '设备型号')
-//                ->clearable(),
-            amis()->TextControl('device_sn', '设备编号')
-                ->placeholder('请填写设备编号，如sn')
-                ->clearable()
-                ->required(),
-            amis()->SelectControl('device_pos','安装位置')
-                ->options(Enum::DevicePos)
-                ->placeholder('安装位置')
-                ->required(),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state','状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true)
-                ->disabled()
-                ->static(false),
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('单位主体')->icon('menu')->body([
+                    amis()->StaticExactControl('id','ID')->visibleOn('${id}'),
+                    amis()->TextControl('rel.enterprise.enterprise_name', '机构单位')
+                        ->required()
+                        ->static(),
+                    amis()->TextControl('rel.facility.level_name', '选择主体')
+                        ->required()
+                        ->static(),
+                    amis()->SelectControl('device_pos','安装位置')
+                        ->options(Enum::DevicePos)
+                        ->placeholder('安装位置')
+                        ->required(),
+                ]),
+                amis()->Tab()->title('设备信息')->icon('menu')->body([
+                    amis()->TextControl('device_name', '设备名称')
+                        ->clearable()
+                        ->required(),
+                    amis()->TreeSelectControl('device_brand', '设备品牌')
+                        ->options(Enum::brand('access'))
+                        ->placeholder('请选择品牌')
+                        ->clearable()
+                        ->required(),
+                    amis()->TextControl('device_model', '设备型号')
+                        ->placeholder('设备型号，如ET293')
+                        ->clearable(),
+                    amis()->TextControl('device_sn', '设备编号')
+                        ->placeholder('请填写设备编号，如sn')
+                        ->clearable()
+                        ->required(),
+                ]),
+                amis()->Tab()->title('设备状态')->icon('menu')->body([
+                    amis()->TextareaControl('device_desc', '设备描述')
+                        ->clearable(),
+                    amis()->NumberControl('sort', '排序')
+                        ->min(0)
+                        ->max(100)
+                        ->size('xs')
+                        ->value(10),
+                    amis()->TagControl('online','设备状态')
+                        ->options([
+                            ['label' => '已离线', 'color' => 'fail', 'value' => 0],
+                            ['label' => '运行中', 'color' => 'success', 'value' => 1]
+                        ]),
+                    amis()->SwitchControl('state','使用状态')
+                        ->onText('开启')
+                        ->offText('禁用')
+                        ->value(true)
+                        ->disabled()
+                        ->static(false),
+                ])
+            ])
 		])->static();
 	}
 

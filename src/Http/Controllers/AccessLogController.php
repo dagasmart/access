@@ -32,7 +32,7 @@ class AccessLogController extends AdminController
                     ->set('type', 'avatar')
                     ->set('src', '${user.user_avatar}')
                     ->set('size', 'small')
-                    ->set('static', true),
+                    ->set('fixed','left'),
                 amis()->TableColumn('user_name','用户姓名')
                     ->searchable([
                         'name' => 'device_sn',
@@ -49,8 +49,17 @@ class AccessLogController extends AdminController
                     ->set('map', [
                         'in' => '<span class="label label-success rounded-full border">进口入场</span>',
                         'out' => '<span class="label label-danger rounded-full border">出口离场</span>'
-                    ])
-                    ->set('static', true),
+                    ]),
+                amis()->TableColumn('scene_photo','现场实拍')
+                    ->set('type', 'static-image')
+                    ->set('src', '${scene_photo}')
+                    ->set('width', 30)
+                    ->set('height', 30)
+                    ->set('align', 'center')
+                    ->set('enlargeAble', true)
+                    ->set('enlargeWithGallary', false)
+                    ->set('showToolbar', true)
+                    ->set('enlargeTitle', '现场实拍'),
                 amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
                     ->searchable([
                         'name' => 'enterprise_id',
@@ -68,23 +77,20 @@ class AccessLogController extends AdminController
                         'options' => $this->service->options(),
                     ])
                     ->width(200),
-                amis()->TableColumn('rel.device.device_name', '设备名称')->width(200),
-                amis()->TableColumn('rel.device.device_sn','设备编号')
+                amis()->TableColumn('rel.device.device_name', '设备信息')
                     ->searchable([
                         'name' => 'device_sn',
                         'type' => 'input-text',
+                        'placeholder' => '请输入设备编码',
                     ])
-                    ->width(150),
+                    ->set('type', 'tpl')
+                    ->set('tpl', '${rel.device.device_name}<h5 class="m-0 mt-1 text-secondary">${rel.device.device_sn}</h5>')
+                    ->width(200),
                 amis()->TableColumn('created_at', '发生时间')
-                    ->type('datetime')
                     ->sortable()
+                    ->set('type', 'datetime')
+                    ->set('fixed', 'right')
                     ->width(150),
-                amis()->TableColumn('scene_photo','现场抓拍')
-                    ->set('type', 'image')
-                    ->set('src', '${scene_photo}')
-                    ->set('width', 30)
-                    ->set('height', 30)
-                    ->set('static', true),
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
@@ -102,82 +108,37 @@ class AccessLogController extends AdminController
     public function form($isEdit = false): Form
     {
         return $this->baseForm()->body([
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.enterprise_id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '设施主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->value('${rel.facility.id}')
-                ->disabledOn('${!enterprise_id}')
-                ->onlyLeaf()
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_name', '设备名称')
-                ->clearable()
-                ->required(),
-            amis()->InputGroupControl('device_sn','设备编号')->body([
-                amis()->TextControl('device_sn', '设备编号')
-                    ->placeholder('请填写设备编号，如sn')
-                    ->clearable()
-                    ->required(),
-                amis()->SelectControl('device_pos','安装位置')
-                    ->options([['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']])
-                    ->placeholder('安装位置')
-                    ->required(),
-            ]),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state','状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true),
         ]);
     }
 
     public function detail(): Form
     {
         return $this->baseDetail()->body([
-            amis()->StaticExactControl('id','ID')->visibleOn('${id}'),
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.school.id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('parent_id', '选择主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->disabledOn('${!enterprise_id}')
-                ->searchable()
-                ->clearable(),
-            amis()->TextControl('device_name', '设备名称')
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_code', '设备编码')
-                ->clearable(),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state','状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true)
-                ->disabled()
-                ->static(false),
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('记录信息')->icon('menu')->body([
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()->GroupControl()->direction('vertical')->body([
+                            amis()->StaticExactControl('user_id','ID')->visibleOn('${id}'),
+                            amis()->StaticExactControl('user_name','用户'),
+                            amis()->StaticExactControl('rel.enterprise.enterprise_name','机构单位'),
+                            amis()->StaticExactControl('rel.facility.facility_name','设施主体'),
+                            amis()->StaticExactControl('rel.device.device_name','设备名称'),
+                            amis()->StaticExactControl('rel.device.device_sn', '设备编码'),
+                            amis()->StaticExactControl('created_at', '发生时间'),
+                        ]),
+                        amis()->GroupControl()->body([
+                            amis()->Image()->src('${scene_photo}')
+                                ->className('bg-current rounded-lg')
+                                ->thumbMode('contain')
+                                ->enlargeAble()
+                                ->width('300px')
+                                ->height('350px'),
+
+                        ])
+                    ]),
+
+                ]),
+            ])
         ])->static();
     }
 
