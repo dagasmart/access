@@ -20,13 +20,15 @@ class AccessUserService extends AdminService
 
     public function loadRelations($query): void
     {
-        $query->whereHas('rel', function ($query) {
-            $mer_id = admin_mer_id();
-            $query->where('module', admin_current_module())
-                ->when($mer_id, function ($query) use ($mer_id) {
-                    $query->where('mer_id', $mer_id);
-                });
-        })->with(['rel']);
+        $query->with('rel');
+//        $query->whereHas('rel', function ($query) {
+//            $mer_id = admin_mer_id();
+//            $query->where('module', admin_current_module())
+//                ->when($mer_id, function ($query) use ($mer_id) {
+//                    $query->where('mer_id', $mer_id);
+//                });
+//        });
+        //$query->with(['rel']);
     }
 
     public function sortable($query): void
@@ -81,14 +83,31 @@ class AccessUserService extends AdminService
     }
 
     /**
-     * 机构单位列表
+     * 单位列表
      */
     public function getEnterpriseAll(): array
     {
-        return (new EnterpriseService)->query()
-            ->select(['id as value', 'enterprise_name as label', 'id'])
-            ->get()
-            ->toArray();
+        $student = new \DagaSmart\Organization\Services\StudentService;
+        return $student->getEnterpriseAll();
+    }
+
+    /**
+     * 年级列表
+     */
+    public function getGradeAll(): array
+    {
+        $student = new \DagaSmart\Organization\Services\StudentService;
+        return $student->getGradeAll();
+    }
+
+    /**
+     * 班级列表
+     * @return array
+     */
+    public function getClassesAll(): array
+    {
+        $student = new \DagaSmart\Organization\Services\StudentService;
+        return $student->getClassesAll();
     }
 
     /**

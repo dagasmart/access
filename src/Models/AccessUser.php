@@ -5,6 +5,7 @@ namespace DagaSmart\Access\Models;
 use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
 use DagaSmart\Organization\Models\Worker;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * 基础-门禁用户表
@@ -24,6 +25,11 @@ class AccessUser extends Model
     public function getUserAvatarAttribute($value): ?string
     {
         return admin_image_url($value);
+    }
+
+    public function setUserAvatarAttribute($value): void
+    {
+        $this->attributes['user_avatar'] = admin_image_path($value);
     }
 
     public function rel(): hasOne

@@ -8,6 +8,19 @@ enum Enum
 {
 
     /**
+     * 开锁模式
+     * @return array|array[]
+     */
+    public static function open_type(): array
+    {
+        return [
+            ['value' => 'face', 'label' => '人脸解锁', 'color' => 'info'],
+            ['value' => 'finger', 'label' => '指纹解锁', 'color' => 'warning'],
+            ['value' => 'card', 'label' => '开锁卡片', 'color' => 'success'],
+        ];
+    }
+
+    /**
      * 用户类型
      * @return array|array[]
      */
@@ -15,11 +28,11 @@ enum Enum
     {
         $data = [];
         if (is_school_module()) {
-            $data[] = ['value' => 'student', 'label' => '学生', 'color' => 'info'];
-            $data[] = ['value' => 'patriarch', 'label' => '家长', 'color' => 'warning'];
-            $data[] = ['value' => 'worker', 'label' => '教师', 'color' => 'success'];
+            $data[] = ['value' => 'student', 'label' => '学生', 'color' => 'info', 'disabled' => true];
+            $data[] = ['value' => 'patriarch', 'label' => '家长', 'color' => 'warning', 'disabled' => true];
+            $data[] = ['value' => 'worker', 'label' => '教师', 'color' => 'success', 'disabled' => true];
         } else {
-            $data[] = ['value' => 'worker', 'label' => '员工', 'color' => 'success'];
+            $data[] = ['value' => 'worker', 'label' => '员工', 'color' => 'success', 'disabled' => true];
         }
         $data[] = ['value' => 'visitor', 'label' => '访客', 'color' => 'default'];
         return $data;

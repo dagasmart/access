@@ -24,7 +24,7 @@ class AccessUserController extends AdminController
 		$crud = $this->baseCRUD()
 			->filterTogglable(false)
 			->headerToolbar([
-				$this->createButton('dialog',250),
+				$this->createButton('dialog'),
 				...$this->baseHeaderToolBar()
 			])
             ->autoGenerateFilter()
@@ -60,13 +60,45 @@ class AccessUserController extends AdminController
                     ->set('type', 'avatar')
                     ->set('src', '${user_avatar}')
                     ->set('size', 60)
-                    ->set('static', true),
+                    ->set('static', true)
+                    ->set('onError','return true;')
+                    ->set('onEvent', [
+                        'click' => [
+                            'actions' => [
+                                [
+                                    'actionType' => 'drawer',
+                                    'drawer' => [
+                                        'title' => false,
+                                        'actions' => [],
+                                        'closeOnEsc' => true, //esc键关闭
+                                        'closeOnOutside' => true, //域外可关闭
+                                        'showCloseButton' => false, //显示关闭
+                                        'body' => [
+                                            amis()->Image()
+                                                ->src('${user_avatar}')
+                                                ->defaultImage(url(admin_config('admin.default_image')))
+                                                ->width('100%')
+                                                ->height('100%'),
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]),
                 amis()->TableColumn('user_type', '用户类型')
                     ->searchable(
                         amis()->SelectControl('user_type')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
                     )
                     ->set('type', 'select')
                     ->set('options', Enum::user_type())
+                    ->set('static', true),
+                amis()->TableColumn('open_type', '用户类型')
+                    ->searchable(
+                        amis()->SelectControl('open_type')->options(Enum::open_type())->checkAll()->multiple()->clearable(),
+                    )
+                    ->set('type', 'input-tag')
+                    ->set('options', Enum::open_type())
+                    ->set('multiple', true)
                     ->set('static', true),
                 amis()->TableColumn('state', '状态')
                     ->set('type','switch')
@@ -83,7 +115,7 @@ class AccessUserController extends AdminController
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
-                        $this->rowEditButton(true,250),
+                        $this->rowEditButton(true),
                         $this->rowDeleteButton(),
                         $this->rowSetAction('drawer', 'auto'),
                         $this->rowSendAction('drawer', 'lg'),
@@ -100,101 +132,138 @@ class AccessUserController extends AdminController
 	public function form($isEdit = false): Form
     {
 		return $this->baseForm()->body([
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.enterprise_id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '设施主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->value('${rel.facility.id}')
-                ->disabledOn('${!enterprise_id}')
-                ->onlyLeaf()
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_name', '设备名称')
-                ->placeholder('例:智能门禁机-进-1')
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->options(Enum::user_type('access'))
-                ->placeholder('请选择品牌')
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_model', '设备型号')
-                ->placeholder('设备型号，如ET293')
-                ->clearable()
-                ->required(),
-            amis()->InputGroupControl('device_sn','设备编号')->body([
-                amis()->TextControl('device_sn', '设备编号')
-                    ->placeholder('请填写设备编号，如sn')
-                    ->clearable()
-                    ->required(),
-            ])->required(),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state','状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true),
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('用户信息')->icon('menu')->body([
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()
+                            ->RadiosControl('user_type','用户类型')
+                            ->options(Enum::user_type())
+                            ->value('visitor')
+                            ->disabled($isEdit)
+                            ->visible(!$isEdit),
+                    ]),
+                    amis()->Divider()->lineStyle('dashed')->visible(!$isEdit),
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()->GroupControl()->direction('vertical')->body([
+                            amis()->StaticExactControl('user_id','ID')->visibleOn('${id}')->copyable(),
+                            amis()->TagControl('user_type','用户类型')
+                                ->options(Enum::user_type())
+                                ->static('${user_type !== "visitor"}')
+                                ->disabledOn('${user_type !== "visitor"}')
+                                ->visible($isEdit),
+                            amis()->StaticExactControl(false,'用户姓名')
+                                ->value('${user_name}')
+                                ->description('<span class=text-red-300>${id_card}</span>')
+                                ->copyable()
+                                ->static('${user_type !== "visitor"}')
+                                ->visible($isEdit),
+                            amis()->StaticExactControl(false, module_enterprise_alias())
+                                ->value('${rel.enterprise.enterprise_name}')
+                                ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>/<span class=text-blue-300>${rel.classes.classes_name}</span>')
+                                ->visible($isEdit),
+                            amis()->TextControl('user_name','用户姓名')
+                                ->hidden($isEdit)
+                                ->required(),
+                            amis()->TextControl('id_card','身份证号')
+                                ->hidden($isEdit)
+                                ->required(),
+                            amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                                ->options($this->service->getEnterpriseAll())
+                                ->hidden($isEdit)
+                                ->required(),
+
+                            amis()->DateTimeControl('updated_at', '创建时间')->valueFormat('YYYY-MM-DD HH:mm:ss')->value('+0hours'),
+                        ])->className('border-r border-dashed pr-5'),
+                        amis()->GroupControl()->body([
+                            amis()->ImageControl('user_avatar')
+                                ->thumbRatio('1:1')
+                                ->thumbMode('cover h-full rounded-md overflow-hidden')
+                                ->className(['overflow-hidden'=>true, 'h-full'=>true])
+                                ->imageClassName([
+                                    'w-52'=>true,
+                                    'h-64'=>true,
+                                    'overflow-hidden'=>true
+                                ])
+                                ->fixedSize()
+                                ->fixedSizeClassName([
+                                    'w-52'=>true,
+                                    'h-64'=>true,
+                                    'overflow-hidden'=>true
+                                ])
+                                ->crop([
+                                    'aspectRatio' => '0.81',
+                                ]),
+                        ]),
+                    ]),
+                    amis()->Divider()->lineStyle('dashed'),
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()
+                            ->CheckboxesControl('open_type','开锁模式')
+                            ->options(Enum::open_type()),
+                    ]),
+                ]),
+            ]),
+
+
 		]);
 	}
 
 	public function detail(): Form
     {
 		return $this->baseDetail()->body([
-            amis()->StaticExactControl('id','ID')->visibleOn('${id}'),
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.school.id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '选择主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->disabledOn('${!enterprise_id}')
-                ->value('${rel.facility.id}')
-                ->searchable()
-                ->clearable(),
-            amis()->TextControl('device_name', '设备名称')
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->options(Enum::user_type('access'))
-                ->placeholder('请选择品牌')
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_model', '设备型号')
-                ->placeholder('设备型号，如ET293')
-                ->clearable(),
-//            amis()->TextControl('device_model', '设备型号')
-//                ->clearable(),
-            amis()->TextControl('device_sn', '设备编号')
-                ->placeholder('请填写设备编号，如sn')
-                ->clearable()
-                ->required(),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state','状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true)
-                ->disabled()
-                ->static(false),
+
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('用户信息')->icon('menu')->body([
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()->GroupControl()->direction('vertical')->body([
+                            amis()->StaticExactControl('user_id','ID')->visibleOn('${id}')->copyable(),
+                            amis()->TagControl('user_type','用户类型')
+                                ->options(Enum::user_type())
+                                ->static('${user_type !== "visitor"}')
+                                ->disabledOn('${user_type !== "visitor"}'),
+                            amis()->StaticExactControl(false,'用户姓名')
+                                ->value('${user_name}')
+                                ->description('<span class=text-red-300>${id_card}</span>')
+                                ->copyable()
+                                ->static('${user_type !== "visitor"}'),
+                            amis()->StaticExactControl(false, module_enterprise_alias())
+                                ->value('${rel.enterprise.enterprise_name}')
+                                ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>/<span class=text-blue-300>${rel.classes.classes_name}</span>'),
+
+                            amis()->DateTimeControl('updated_at', '创建时间')->valueFormat('YYYY-MM-DD HH:mm:ss')->value('+0hours'),
+                        ])->className('border-r border-dashed pr-5'),
+                        amis()->GroupControl()->body([
+                            amis()->ImageControl('user_avatar')
+                                ->thumbRatio('1:1')
+                                ->thumbMode('cover h-full rounded-md overflow-hidden')
+                                ->className(['overflow-hidden'=>true, 'h-full'=>true])
+                                ->imageClassName([
+                                    'w-52'=>true,
+                                    'h-64'=>true,
+                                    'overflow-hidden'=>true
+                                ])
+                                ->fixedSize()
+                                ->fixedSizeClassName([
+                                    'w-52'=>true,
+                                    'h-64'=>true,
+                                    'overflow-hidden'=>true
+                                ])
+                                ->crop([
+                                    'aspectRatio' => '0.81',
+                                ]),
+                        ]),
+                    ]),
+                    amis()->Divider()->lineStyle('dashed'),
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()
+                            ->CheckboxesControl('open_type','开锁模式')
+                            ->options(Enum::open_type())
+                            ->disabled()
+                            ->static(false),
+                    ]),
+                ]),
+            ]),
+
 		])->static();
 	}
 
