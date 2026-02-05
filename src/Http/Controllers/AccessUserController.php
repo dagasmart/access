@@ -117,7 +117,7 @@ class AccessUserController extends AdminController
                         $this->rowShowButton(true),
                         $this->rowEditButton(true),
                         $this->rowDeleteButton(),
-                        $this->rowSetAction('drawer', 'auto'),
+                        //$this->rowSetAction('drawer', 'auto'),
                         $this->rowSendAction('drawer', 'lg'),
                     ])
                 ])
@@ -165,14 +165,24 @@ class AccessUserController extends AdminController
                                 ->hidden($isEdit)
                                 ->required(),
                             amis()->TextControl('id_card','身份证号')
+                                ->validateOnChange()
+                                ->validations([
+                                    'matchRegexp' => '/^[\\d|*]{17}[\\dXx]$/i',
+                                ])
+                                ->validationErrors([
+                                    'matchRegexp' => '请输入有效的身份证号码',
+                                ])
                                 ->hidden($isEdit)
                                 ->required(),
                             amis()->SelectControl('enterprise_id', module_enterprise_alias())
                                 ->options($this->service->getEnterpriseAll())
                                 ->hidden($isEdit)
                                 ->required(),
+                            amis()->SwitchControl('state', '用户状态')
+                                ->onText('开启')
+                                ->offText('禁用')
+                                ->value(1),
 
-                            amis()->DateTimeControl('updated_at', '创建时间')->valueFormat('YYYY-MM-DD HH:mm:ss')->value('+0hours'),
                         ])->className('border-r border-dashed pr-5'),
                         amis()->GroupControl()->body([
                             amis()->ImageControl('user_avatar')
@@ -197,10 +207,14 @@ class AccessUserController extends AdminController
                     ]),
                     amis()->Divider()->lineStyle('dashed'),
                     amis()->GroupControl()->mode('horizontal')->body([
-                        amis()
-                            ->CheckboxesControl('open_type','开锁模式')
+                        amis()->CheckboxesControl('open_type','开锁模式')
                             ->options(Enum::open_type()),
                     ]),
+                    amis()->DateTimeControl('updated_at', '更新时间')
+                        ->valueFormat('YYYY-MM-DD HH:mm:ss')
+                        ->value('+0hours')
+                        ->visible($isEdit)
+                        ->static($isEdit),
                 ]),
             ]),
 
