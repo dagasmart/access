@@ -2,9 +2,8 @@
 
 namespace DagaSmart\Access\Services;
 
-use DagaSmart\Access\Models\AccessLog;
+use DagaSmart\Access\Models\AccessPermission;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
-use DagaSmart\Organization\Services\AdminService;
 use DagaSmart\Organization\Services\EnterpriseService;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -12,22 +11,22 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * 门禁-设备服务类
  *
- * @method AccessLog getModel()
- * @method AccessLog|Builder query()
+ * @method AccessPermission getModel()
+ * @method AccessPermission|Builder query()
  */
 class AccessPermissionService extends AdminService
 {
-	protected string $modelName = AccessLog::class;
+	protected string $modelName = AccessPermission::class;
 
     public function loadRelations($query): void
     {
-        $query->whereHas('rel', function ($query) {
-            $mer_id = admin_mer_id();
-            $query->where('module', admin_current_module())
-                ->when($mer_id, function ($query) use ($mer_id) {
-                    $query->where('mer_id', $mer_id);
-                });
-        })->with(['rel','user']);
+//        $query->whereHas('rel', function ($query) {
+//            $mer_id = admin_mer_id();
+//            $query->where('module', admin_current_module())
+//                ->when($mer_id, function ($query) use ($mer_id) {
+//                    $query->where('mer_id', $mer_id);
+//                });
+//        })->with(['rel','user']);
     }
 
     public function sortable($query): void

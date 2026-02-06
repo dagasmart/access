@@ -4,7 +4,6 @@ namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessLog;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
-use DagaSmart\Organization\Services\AdminService;
 use DagaSmart\Organization\Services\EnterpriseService;
 use Illuminate\Database\Eloquent\Builder;
 

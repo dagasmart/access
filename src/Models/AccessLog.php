@@ -6,7 +6,7 @@ use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * 基础-学生表
+ * 门禁-进出记录表
  */
 class AccessLog extends Model
 {

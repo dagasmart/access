@@ -28,25 +28,14 @@ class AccessPermissionController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed','left'),
-                amis()->TableColumn('user_name','用户姓名')
+                amis()->TableColumn('permission_name','权限名')
                     ->searchable([
-                        'name' => 'device_sn',
+                        'name' => 'permission_name',
                         'type' => 'input-text',
                     ])
                     ->set('fixed','left'),
-                amis()->TableColumn('device_pos','行为事件')
-                    ->searchable([
-                        'name' => 'device_pos',
-                        'type' => 'select',
-                        'options' => [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']]
-                    ])
-                    ->set('type', 'mapping')
-                    ->set('map', [
-                        'in' => '<span class="label label-success rounded-full border">进口入场</span>',
-                        'out' => '<span class="label label-danger rounded-full border">出口离场</span>'
-                    ])
-                    ->set('static', true),
-                amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
+                amis()->TableColumn('permission_code','权限码'),
+                amis()->TableColumn('enterprise_id', module_enterprise_alias())
                     ->searchable([
                         'name' => 'enterprise_id',
                         'type' => 'select',
@@ -54,21 +43,41 @@ class AccessPermissionController extends AdminController
                         'searchable' => true,
                         'options' => $this->service->getEnterpriseAll(),
                     ])
+                    ->set('type', 'select')
+                    ->set('options', $this->service->getEnterpriseAll())
+                    ->set('static', true)
                     ->width(200),
-                amis()->TableColumn('rel.facility.level_name', '设施主体')
+                amis()->TableColumn('permission_combo', '权限内容')->width(200),
+                amis()->TableColumn('exclude_date','指定日期禁止通行')
                     ->searchable([
-                        'name' => 'facility_id',
-                        'type' => 'tree-select',
+                        'name' => 'is_exclude',
+                        'type' => 'checkboxes',
                         'multiple' => true,
-                        'options' => $this->service->options(),
+                        'options' => $this->service->switchOption()
                     ])
-                    ->width(200),
-                amis()->TableColumn('rel.device.device_name', '设备名称')->width(200),
-                amis()->TableColumn('rel.device.device_sn','设备编号')
+                    ->set('type', 'page')
+                    ->set('body', [
+                        amis()->GroupControl()->mode('horizontal')->body([
+                            amis()->SwitchControl('is_exclude')->onText('是')->offText('否')->disabled(),
+                            amis()->Link()->body('明细')->onEvent(),
+                        ])
+                    ])
+                    ->width(150),
+                amis()->TableColumn('allow_date','指定日期允许通行')
                     ->searchable([
-                        'name' => 'device_sn',
-                        'type' => 'input-text',
+                        'name' => 'is_allow',
+                        'type' => 'checkboxes',
+                        'multiple' => true,
+                        'options' => $this->service->switchOption()
                     ])
+                    ->set('type', 'page')
+                    ->set('body', [
+                        amis()->GroupControl()->mode('horizontal')->body([
+                            amis()->SwitchControl('is_allow')->onText('是')->offText('否')->disabled(),
+                            amis()->Link()->body('明细')->onEvent(),
+                        ])
+                    ])
+                    ->set('href', '342343')
                     ->width(150),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')
@@ -77,12 +86,13 @@ class AccessPermissionController extends AdminController
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
+                        $this->rowEditButton(true),
                         $this->rowDeleteButton(),
                     ])
                 ])
                     ->set('align','center')
                     ->set('fixed','right')
-                    ->set('width',100)
+                    ->set('width',150)
             ]);
 
         return $this->baseList($crud);

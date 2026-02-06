@@ -154,13 +154,14 @@ class AccessUserController extends AdminController
                             amis()->StaticExactControl(false,'用户姓名')
                                 ->value('${user_name}')
                                 ->description('<span class=text-red-300>${id_card}</span>')
-                                ->copyable()
                                 ->static('${user_type !== "visitor"}')
                                 ->visible($isEdit),
                             amis()->StaticExactControl(false, module_enterprise_alias())
                                 ->value('${rel.enterprise.enterprise_name}')
-                                ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>/<span class=text-blue-300>${rel.classes.classes_name}</span>')
-                                ->visible($isEdit),
+                                ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>${rel?"/":""}<span class=text-blue-300>${rel.classes.classes_name}</span>')
+                                ->visible($isEdit)->visibleOn('${user_type !== "visitor"}'),
+
+                            //================以下新增时生效==================
                             amis()->TextControl('user_name','用户姓名')
                                 ->hidden($isEdit)
                                 ->required(),
@@ -208,14 +209,24 @@ class AccessUserController extends AdminController
                     amis()->Divider()->lineStyle('dashed'),
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->CheckboxesControl('open_type','开锁模式')
-                            ->options(Enum::open_type()),
+                            ->options(Enum::open_type())
+                            ->required(),
                     ]),
-                    amis()->DateTimeControl('updated_at', '更新时间')
-                        ->valueFormat('YYYY-MM-DD HH:mm:ss')
-                        ->value('+0hours')
+                    amis()->DateTimeControl(false, '更新时间')
+                        ->value('${updated_at}')
                         ->visible($isEdit)
                         ->static($isEdit),
                 ]),
+                amis()->Tab()->title('权限设置')->icon('menu')->body([
+                    amis()->GroupControl()->mode('horizontal')->body([
+                        amis()->SelectControl('', '用户权限')
+                            ->options($this->service->getEnterpriseAll()),
+//                        amis()->DateRangeControl('expiry_date','进出日期')
+//                            ->valueFormat('YYYY-MM-DD')
+//                            ->description('<span class=text-blue-300>空值为长期</span>'),
+                    ]),
+                ]),
+
             ]),
 
 
