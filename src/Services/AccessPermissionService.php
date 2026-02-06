@@ -2,6 +2,7 @@
 
 namespace DagaSmart\Access\Services;
 
+use DagaSmart\Access\Enums\Enum;
 use DagaSmart\Access\Models\AccessPermission;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
 use DagaSmart\Organization\Services\EnterpriseService;
@@ -20,13 +21,13 @@ class AccessPermissionService extends AdminService
 
     public function loadRelations($query): void
     {
-//        $query->whereHas('rel', function ($query) {
-//            $mer_id = admin_mer_id();
-//            $query->where('module', admin_current_module())
-//                ->when($mer_id, function ($query) use ($mer_id) {
-//                    $query->where('mer_id', $mer_id);
-//                });
-//        })->with(['rel','user']);
+        $query->whereHas('rel', function ($query) {
+            $mer_id = admin_mer_id();
+            $query->where('module', admin_current_module())
+                ->when($mer_id, function ($query) use ($mer_id) {
+                    $query->where('mer_id', $mer_id);
+                });
+        })->with(['rel']);
     }
 
     public function sortable($query): void
@@ -34,8 +35,9 @@ class AccessPermissionService extends AdminService
         if (request()->orderBy && request()->orderDir) {
             $query->orderBy(request()->orderBy, request()->orderDir ?? 'asc');
         } else {
-            $query->orderBy($this->primaryKey(), 'asc');
+            $query->orderBy('enterprise_id', 'asc');
         }
+        $query->orderBy('permission_code', 'asc');
     }
 
     public function searchable($query): void
@@ -53,18 +55,18 @@ class AccessPermissionService extends AdminService
     public function saved($model, $isEdit = false): void
     {
         parent::saved($model, $isEdit);
-        $request = request()->all();
-        $data = [
-            'enterprise_id' => $request['enterprise_id'],
-            'facility_id' => $request['facility_id'],
-            'device_id' => $model->id,
-        ];
-        admin_transaction(function () use ($data) {
-            if ($data['device_id']) {
-                EnterpriseFacilityDevice::query()->where($data)->delete();
-            }
-            EnterpriseFacilityDevice::query()->insert($data);
-        });
+//        $request = request()->all();
+//        $data = [
+//            'enterprise_id' => $request['enterprise_id'],
+//            'facility_id' => $request['facility_id'],
+//            'device_id' => $model->id,
+//        ];
+//        admin_transaction(function () use ($data) {
+//            if ($data['device_id']) {
+//                EnterpriseFacilityDevice::query()->where($data)->delete();
+//            }
+//            EnterpriseFacilityDevice::query()->insert($data);
+//        });
     }
 
     /**
@@ -76,6 +78,32 @@ class AccessPermissionService extends AdminService
             ->select(['id as value', 'enterprise_name as label', 'id'])
             ->get()
             ->toArray();
+    }
+
+    /**
+     * 权限码
+     * @return array
+     */
+    public function permissionCode(): array
+    {
+        $data = Enum::PERMISSION_CODE ?? [];
+        $enterprise_id = $this->request->enterprise_id ?? null;
+        $id = $this->request->id ?? null;
+        if ($data && $enterprise_id) {
+            $pluck = $this->query()
+                ->where('enterprise_id', $enterprise_id)
+                ->when($id, function ($query) use ($id) {
+                    $query->where('id', '<>', $id);
+                })
+                ->pluck('permission_code')
+                ->toArray();
+            array_walk($data, function (&$item) use ($pluck) {
+                if ($pluck) {
+                $item['hidden'] = in_array($item['value'], $pluck);
+                }
+            });
+        }
+        return $data;
     }
 
     /**

@@ -16,7 +16,7 @@ class AccessPermissionController extends AdminController
         $crud = $this->baseCRUD()
             ->filterTogglable(false)
             ->headerToolbar([
-                $this->createButton('dialog',250),
+                $this->createButton('dialog'),
                 ...$this->baseHeaderToolBar()
             ])
             ->autoGenerateFilter()
@@ -24,18 +24,10 @@ class AccessPermissionController extends AdminController
             ->columnsTogglable()
             ->footable(['expand' => 'first'])
             ->autoFillHeight(true)
+            ->combineNum(1)
             ->columns([
-                amis()->TableColumn('id', 'ID')
-                    ->sortable()
-                    ->set('fixed','left'),
-                amis()->TableColumn('permission_name','权限名')
-                    ->searchable([
-                        'name' => 'permission_name',
-                        'type' => 'input-text',
-                    ])
-                    ->set('fixed','left'),
-                amis()->TableColumn('permission_code','权限码'),
                 amis()->TableColumn('enterprise_id', module_enterprise_alias())
+                    ->sortable()
                     ->searchable([
                         'name' => 'enterprise_id',
                         'type' => 'select',
@@ -46,7 +38,18 @@ class AccessPermissionController extends AdminController
                     ->set('type', 'select')
                     ->set('options', $this->service->getEnterpriseAll())
                     ->set('static', true)
+                    ->set('fixed','left')
                     ->width(200),
+                amis()->TableColumn('permission_name','权限名')
+                    ->searchable([
+                        'name' => 'permission_name',
+                        'type' => 'input-text',
+                    ])
+                    ->set('fixed','left'),
+                amis()->TableColumn('permission_code','权限码')
+                    ->set('type', 'input-tag')
+                    ->set('options', $this->service->permissionCode())
+                    ->set('static', true),
                 amis()->TableColumn('permission_combo', '权限内容')->width(200),
                 amis()->TableColumn('exclude_date','指定日期禁止通行')
                     ->searchable([
@@ -81,7 +84,6 @@ class AccessPermissionController extends AdminController
                     ->width(150),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')
-                    ->sortable()
                     ->width(150),
                 $this->rowActions([
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
@@ -101,45 +103,37 @@ class AccessPermissionController extends AdminController
     public function form($isEdit = false): Form
     {
         return $this->baseForm()->body([
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.enterprise_id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '设施主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->value('${rel.facility.id}')
-                ->disabledOn('${!enterprise_id}')
-                ->onlyLeaf()
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_name', '设备名称')
-                ->clearable()
-                ->required(),
-            amis()->InputGroupControl('device_sn','设备编号')->body([
-                amis()->TextControl('device_sn', '设备编号')
-                    ->placeholder('请填写设备编号，如sn')
-                    ->clearable()
-                    ->required(),
-                amis()->SelectControl('device_pos','安装位置')
-                    ->options([['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']])
-                    ->placeholder('安装位置')
-                    ->required(),
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('基本信息')->icon('menu')->body([
+                    amis()->GroupControl()->mode('normal')->body([
+                        amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                            ->options($this->service->getEnterpriseAll())
+                            ->value('${rel.enterprise_name}')
+                            ->size('lg')
+                            ->searchable()
+                            ->clearable()
+                            ->disabled($isEdit)
+                            ->required(),
+                        amis()->TextControl('permission_name', '权限名')
+                            ->clearable()
+                            ->required(),
+                        amis()->SelectControl('permission_code', '权限码')
+                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
+                            ->options($this->service->permissionCode())
+                            ->size('sm')
+                            ->value('${rel.permission_name}')
+                            ->disabledOn('${!enterprise_id}')
+                            ->required(),
+                    ]),
+                ]),
+                amis()->Tab()->title('时间设定')->icon('menu')->body([
+
+                ]),
+                amis()->Tab()->title('可选条件')->icon('menu')->body([
+
+                ]),
             ]),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state','状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true),
+
         ]);
     }
 
@@ -178,6 +172,14 @@ class AccessPermissionController extends AdminController
                 ->disabled()
                 ->static(false),
         ])->static();
+    }
+
+    /**
+     *
+     */
+    public function permissionCode()
+    {
+        return $this->service->permissionCode();
     }
 
 

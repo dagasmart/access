@@ -8,6 +8,17 @@ enum Enum
 {
 
     /**
+     * 权限码
+     */
+    const array PERMISSION_CODE = [
+        ['value' => 0, 'label' => '初级'],
+        ['value' => 1, 'label' => '一级'],
+        ['value' => 2, 'label' => '二级'],
+        ['value' => 3, 'label' => '三级'],
+        ['value' => 4, 'label' => '四级'],
+        ];
+
+    /**
      * 开锁模式
      * @return array|array[]
      */
