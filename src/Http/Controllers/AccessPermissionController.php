@@ -16,7 +16,7 @@ class AccessPermissionController extends AdminController
         $crud = $this->baseCRUD()
             ->filterTogglable(false)
             ->headerToolbar([
-                $this->createButton('dialog'),
+                $this->createButton(true),
                 ...$this->baseHeaderToolBar()
             ])
             ->autoGenerateFilter()
@@ -50,7 +50,16 @@ class AccessPermissionController extends AdminController
                     ->set('type', 'input-tag')
                     ->set('options', $this->service->permissionCode())
                     ->set('static', true),
-                amis()->TableColumn('permission_combo', '权限内容')->width(200),
+                amis()->TableColumn('permission_combo', '权限内容')
+                    ->set('type', 'page')
+                    ->set('body', [
+                        amis()->GroupControl()->mode('horizontal')->body([
+                            //amis()->ComboControl('permission_combo'),
+
+                            amis()->Link()->body('明细')->onEvent(),
+                        ])
+                    ])
+                    ->width(200),
                 amis()->TableColumn('exclude_date','指定日期禁止通行')
                     ->searchable([
                         'name' => 'is_exclude',
@@ -80,7 +89,6 @@ class AccessPermissionController extends AdminController
                             amis()->Link()->body('明细')->onEvent(),
                         ])
                     ])
-                    ->set('href', '342343')
                     ->width(150),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')
@@ -118,8 +126,8 @@ class AccessPermissionController extends AdminController
                             ->clearable()
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
                             ->options($this->service->permissionCode())
+                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
                             ->disabledOn('${!enterprise_id}')
@@ -127,10 +135,67 @@ class AccessPermissionController extends AdminController
                     ]),
                 ]),
                 amis()->Tab()->title('时间设定')->icon('menu')->body([
-
+                    amis()->ComboControl('permission_combo', false)
+                        ->items([
+                            //amis()->Tag()->label('星期${index+1}'),
+                            amis()->SubFormControl('week${index+1}', '星期${["日","一","二","三","四","五","六","日"][index+1]}')
+                                ->multiple()
+                                ->btnLabel('${begin}-${end}')
+                                ->draggable()
+                                ->addable()
+                                ->removable()
+                                ->form([
+                                    'title' => '时间范围',
+                                    'body' => [
+                                        //amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
+                                        amis()->TimeControl('begin','开始时间')
+                                            ->valueFormat('HH:mm')
+                                            ->clearable()
+                                            ->required(),
+                                        amis()->TimeControl('end','结束时间')
+                                            ->valueFormat('HH:mm')
+                                            ->timeConstraints([
+                                                'hours' => ['min' => 0, 'max' => 23],
+                                                'minutes' => ['min' => 0, 'max' => 59],
+                                            ])
+                                            ->clearable()
+                                            ->required(),
+                                    ],
+                                ])->required(),
+                        ])
+                        ->formClassName('border-b border-dashed')
+                        ->multiple()
+                        ->maxLength(7)
+                        ->draggable(),
                 ]),
-                amis()->Tab()->title('可选条件')->icon('menu')->body([
-
+                amis()->Tab()->title('扩展条件')->icon('menu')->body([
+                    amis()->SwitchControl('is_exclude', '指定日期禁止通行')
+                        ->labelWidth('auto')
+                        ->onText('是')
+                        ->offText('否'),
+                    amis()->ComboControl('exclude_date', false)
+                        ->items([
+                            amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                            amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                        ])
+                        ->multiple()
+                        ->draggable()
+                        ->visibleOn('${!!is_exclude}')
+                        ->required(),
+                    amis()->Divider()->lineStyle('dashed'),
+                    amis()->SwitchControl('is_allow', '指定日期允许通行')
+                        ->labelWidth('auto')
+                        ->onText('是')
+                        ->offText('否'),
+                    amis()->ComboControl('allow_date', false)
+                        ->items([
+                            amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                            amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                        ])
+                        ->multiple()
+                        ->draggable()
+                        ->visibleOn('${!!is_allow}')
+                        ->required(),
                 ]),
             ]),
 

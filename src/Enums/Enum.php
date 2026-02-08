@@ -16,6 +16,7 @@ enum Enum
         ['value' => 2, 'label' => '二级'],
         ['value' => 3, 'label' => '三级'],
         ['value' => 4, 'label' => '四级'],
+        ['value' => 5, 'label' => '五级'],
         ];
 
     /**

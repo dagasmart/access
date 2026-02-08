@@ -47,6 +47,41 @@ class AccessPermissionService extends AdminService
     }
 
     /**
+     * 保存前
+     */
+    public function saving(&$data, $primaryKey = '')
+    {
+//        $time = date('H:i');
+//        $sec = toSeconds($time);
+//
+//        dump($sec);
+//        dump(timeToSeconds($time));
+//        dump(secondToTime($sec));
+//        die;
+//        dump($data);
+//        dump($primaryKey);
+        $data['allow_date'] = $data['allow_date'] ?? null;
+        $data['exclude_date'] = $data['exclude_date'] ?? null;
+        $data['body'] = [
+            'name' => $data['permission_name'] ?? null,
+            'spt_slots' => $this->arrayToJson([
+                'enable' => $data['is_allow'],
+                'data' => $data['allow_date'],
+                'key' => 'ust_slot',
+                ]),
+            'dt_slots' => $this->arrayToJson([
+                'enable' => $data['is_exclude'],
+                'data' => $data['exclude_date'],
+                'key' => 'dt_slot',
+            ]),
+            'st_slots' => $this->arrayToJson([
+                'data' => $data['permission_combo'],
+                'key' => 'st_slot',
+            ]),
+        ];
+    }
+
+    /**
      * 新增或修改后更新关联数据
      * @param $model
      * @param bool $isEdit
@@ -102,6 +137,57 @@ class AccessPermissionService extends AdminService
                 $item['hidden'] = in_array($item['value'], $pluck);
                 }
             });
+        }
+        return $data;
+    }
+
+    /**
+     * 时间转换json
+     * @param array $rows
+     * @return array|null
+     */
+    public function arrayToJson(array $rows = []): ?array
+    {
+        $data = [];
+        $key = $rows['key'] ?? null;
+        $items = $rows['data'] ?? null;
+        $enable = $rows['enable'] ?? null;
+        if ($items && is_array($items)) {
+            $data['enable'] = $enable;
+            $data[$key] = [];
+            foreach ($items as $index => $item) {
+                if ($item['begin'] && $item['end']) {
+                    $timestamp = $item['date'] ?? null;
+                    if (!isTimestamp($timestamp)) {
+                        $timestamp = strtotime($timestamp);
+                    }
+                    if ($timestamp) {
+                        if ($key == 'dt_slot') { //禁止通行
+                            $data[$key][] = [
+                                's_day' => $timestamp + timeToSeconds($item['begin']),
+                                'e_day' => $timestamp + timeToSeconds($item['end']),
+                            ];
+                        }
+                        if ($key == 'ust_slot') { //允许通行
+                            $data[$key][] = [
+                                's_sec' => timeToSeconds($item['begin']),
+                                'e_sec' => timeToSeconds($item['end']),
+                            ];
+                        }
+                    }
+                } else {
+                    $data['st_slots'] = [];
+                    foreach ($item as $v) {
+                        if ($v['begin'] && $v['end']) {
+                            $data['st_slots'][] = [
+                                's_sec' => timeToSeconds($v['begin']),
+                                'e_sec' => timeToSeconds($v['end']),
+                            ];
+                        }
+                    }
+
+                }
+            }
         }
         return $data;
     }
