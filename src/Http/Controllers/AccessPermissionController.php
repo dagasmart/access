@@ -505,5 +505,13 @@ class AccessPermissionController extends AdminController
         return $this->service->permissionCode();
     }
 
+    /**
+     * 机构权限列表
+     */
+    public function permissionAll()
+    {
+        return $this->service->permissionAll();
+    }
+
 
 }

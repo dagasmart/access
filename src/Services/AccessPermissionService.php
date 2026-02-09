@@ -131,6 +131,18 @@ class AccessPermissionService extends AdminService
         return $data;
     }
 
+    public function permissionAll(): array
+    {
+        $enterprise_id = $this->request->enterprise_id ?? null;
+        return $this->query()
+            ->where('enterprise_id', $enterprise_id)
+            ->orderBy('permission_code')
+            ->get(['permission_name as label', 'permission_code as value'])
+            ->map(function ($rows) {
+                return collect($rows->toArray())->except(['combo'])->all();
+            })->toArray();
+    }
+
     /**
      * 时间转换json
      * @param array $rows
