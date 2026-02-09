@@ -6,7 +6,7 @@ use DagaSmart\Organization\Models\Enterprise;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * 门禁-进出记录表
+ * 门禁-权限表
  */
 class AccessPermission extends Model
 {
