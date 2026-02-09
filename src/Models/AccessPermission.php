@@ -69,9 +69,9 @@ class AccessPermission extends Model
      * 星期 大小写转换
      */
 
-    public function arrayWeeks($int = null, $type = 1)
+    public function arrayWeeks($int = null, $type = 2)
     {
-        $weeks = Enum::weeks(2);
+        $weeks = Enum::weeks($type);
         if ($int !== null) {
             $column = array_column($weeks, 'label', 'value');
             return $column[$int];

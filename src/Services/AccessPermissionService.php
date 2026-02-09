@@ -214,11 +214,6 @@ class AccessPermissionService extends AdminService
         return $data;
     }
 
-    public function arrayWeeks()
-    {
-        return arrayWeeks();
-    }
-
     /**
      * 递归选择项
      * @return array

@@ -69,6 +69,7 @@ class AccessPermissionController extends AdminController
                                                 'type' => 'dialog',
                                                 'title' => '权限内容',
                                                 'actions' => [],
+                                                'size' => 'md',
                                                 'closeOnEsc' => true,
                                                 'body' => [
                                                     amis()->ComboControl('permission_combo', false)
@@ -87,7 +88,7 @@ class AccessPermissionController extends AdminController
                                                                         amis()->TimeControl('begin','开始时间')
                                                                             ->valueFormat('HH:mm')
                                                                             ->clearable()
-                                                                            ->required(),
+                                                                            ->static(),
                                                                         amis()->TimeControl('end','结束时间')
                                                                             ->valueFormat('HH:mm')
                                                                             ->timeConstraints([
@@ -95,14 +96,14 @@ class AccessPermissionController extends AdminController
                                                                                 'minutes' => ['min' => 0, 'max' => 59],
                                                                             ])
                                                                             ->clearable()
-                                                                            ->required(),
+                                                                            ->static(),
                                                                     ],
                                                                     'closeOnEsc' => true,
                                                                     'actions' => [],
                                                                     'size' => 'sm',
                                                                     'static' => true,
                                                                 ])
-                                                                ->required(),
+                                                                ->static(),
                                                         ])
                                                         ->formClassName('border-b border-dashed')
                                                         ->maxLength(7)
