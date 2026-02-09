@@ -59,5 +59,14 @@ enum Enum
         return Enums::sex();
     }
 
+    /**
+     * 星期列表
+     * @param int|null $type 1取星期值0123456，2取星期值1234567
+     * @return array
+     */
+    public static function weeks(?int $type = null): array
+    {
+        return Enums::weeks($type);
+    }
 
 }

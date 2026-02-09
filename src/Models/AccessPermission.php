@@ -2,6 +2,7 @@
 
 namespace DagaSmart\Access\Models;
 
+use DagaSmart\Access\Enums\Enum;
 use DagaSmart\Organization\Models\Enterprise;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -21,8 +22,24 @@ class AccessPermission extends Model
         'exclude_date' => 'array',
         'allow_date' => 'array',
         'body' => 'array',
+        'combo' => 'string',
     ];
 
+    protected $appends = ['combo'];
+
+    public function getComboAttribute(): ?string
+    {
+        $row = [];
+        $combo = $this->permission_combo;
+        if ($combo) {
+            array_walk($combo, function ($item) use (&$row) {
+                $key = str_replace('week', null, key($item));
+                $row[] = $this->arrayWeeks($key);
+                //$row[] = $key;
+            });
+        }
+        return $row ? implode(',', $row) : null;
+    }
 
 //    public function setAllowDateAttribute($value): void
 //    {
@@ -47,6 +64,19 @@ class AccessPermission extends Model
     public function rel(): hasOne
     {
         return $this->hasOne(Enterprise::class,'id','enterprise_id')->select(['id', 'enterprise_name']);
+    }
+    /**
+     * 星期 大小写转换
+     */
+
+    public function arrayWeeks($int = null, $type = 1)
+    {
+        $weeks = Enum::weeks(2);
+        if ($int !== null) {
+            $column = array_column($weeks, 'label', 'value');
+            return $column[$int];
+        }
+        return $weeks;
     }
 
 

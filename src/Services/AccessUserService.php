@@ -132,6 +132,16 @@ class AccessUserService extends AdminService
     }
 
     /**
+     * 权限列表
+     * @return array
+     */
+    public function getPermissionAll(): array
+    {
+        $student = new \DagaSmart\Organization\Services\StudentService;
+        return $student->getClassesAll();
+    }
+
+    /**
      * 递归选择项
      * @return array
      */

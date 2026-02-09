@@ -49,11 +49,10 @@ class AccessPermissionService extends AdminService
     /**
      * 保存前
      */
-    public function saving(&$data, $primaryKey = '')
+    public function saving(&$data, $primaryKey = ''): void
     {
 //        $time = date('H:i');
 //        $sec = toSeconds($time);
-//
 //        dump($sec);
 //        dump(timeToSeconds($time));
 //        dump(secondToTime($sec));
@@ -62,23 +61,14 @@ class AccessPermissionService extends AdminService
 //        dump($primaryKey);
         $data['allow_date'] = $data['allow_date'] ?? null;
         $data['exclude_date'] = $data['exclude_date'] ?? null;
-        $data['body'] = [
-            'name' => $data['permission_name'] ?? null,
-            'spt_slots' => $this->arrayToJson([
-                'enable' => $data['is_allow'],
-                'data' => $data['allow_date'],
-                'key' => 'ust_slot',
-                ]),
-            'dt_slots' => $this->arrayToJson([
-                'enable' => $data['is_exclude'],
-                'data' => $data['exclude_date'],
-                'key' => 'dt_slot',
-            ]),
-            'st_slots' => $this->arrayToJson([
-                'data' => $data['permission_combo'],
-                'key' => 'st_slot',
-            ]),
-        ];
+        $body = [];
+        $body['dt_slots'] = $this->arrayToJson(['enable' => $data['is_exclude'], 'data' => $data['exclude_date'], 'key' => 'dt_slot']);
+        $body['spt_slots'] = $this->arrayToJson(['enable' => $data['is_allow'], 'data' => $data['allow_date'], 'key' => 'ust_slot']);
+        $week = $this->arrayToJson(['data' => $data['permission_combo']]);
+        array_walk($week, function($item, $key) use(&$body) {
+            $body[$key] = $item;
+        });
+        $data['body'] = $body;
     }
 
     /**
@@ -153,10 +143,18 @@ class AccessPermissionService extends AdminService
         $items = $rows['data'] ?? null;
         $enable = $rows['enable'] ?? null;
         if ($items && is_array($items)) {
-            $data['enable'] = $enable;
-            $data[$key] = [];
-            foreach ($items as $index => $item) {
-                if ($item['begin'] && $item['end']) {
+            if ($key) {
+                $data[$key] = [];
+            }
+
+            if (!is_null($enable)) {
+                $data['enable'] = $enable;
+            }
+
+            foreach ($items as $item) {
+                $begin = $item['begin'] ?? null;
+                $end = $item['end'] ?? null;
+                if ($begin && $end) {
                     $timestamp = $item['date'] ?? null;
                     if (!isTimestamp($timestamp)) {
                         $timestamp = strtotime($timestamp);
@@ -164,32 +162,61 @@ class AccessPermissionService extends AdminService
                     if ($timestamp) {
                         if ($key == 'dt_slot') { //禁止通行
                             $data[$key][] = [
-                                's_day' => $timestamp + timeToSeconds($item['begin']),
-                                'e_day' => $timestamp + timeToSeconds($item['end']),
+                                's_day' => $timestamp + timeToSeconds($begin),
+                                'e_day' => $timestamp + timeToSeconds($end),
+                                //'s_day' => $timestamp + timeToSeconds($begin),
+                                //'e_day' => $timestamp + timeToSeconds($end),
                             ];
                         }
                         if ($key == 'ust_slot') { //允许通行
                             $data[$key][] = [
-                                's_sec' => timeToSeconds($item['begin']),
-                                'e_sec' => timeToSeconds($item['end']),
+                                's_sec' => timeToSeconds($begin),
+                                'e_sec' => timeToSeconds($end),
+                                //'s_sec' => timeToSeconds($begin),
+                                //'e_sec' => timeToSeconds($end),
+                            ];
+                        }
+                    } else {
+                        if ($key == 'dt_slot') { //禁止通行
+                            $data[$key][] = [
+                                's_day' => date('Ymd', $begin),
+                                'e_day' => date('Ymd', $end),
+                            ];
+                        }
+                        if ($key == 'ust_slot') { //允许通行
+                            $data[$key][] = [
+                                's_sec' => $begin,
+                                'e_sec' => $end,
                             ];
                         }
                     }
                 } else {
-                    $data['st_slots'] = [];
-                    foreach ($item as $v) {
-                        if ($v['begin'] && $v['end']) {
-                            $data['st_slots'][] = [
-                                's_sec' => timeToSeconds($v['begin']),
-                                'e_sec' => timeToSeconds($v['end']),
-                            ];
+                    foreach ($item as $k => $value) {
+                        $key = str_replace('week', 'st_slots', $k);
+                        $data[$key]['st_slot'] = [];
+                        if ($value) {
+                            foreach ($value as $v) {
+                                $begin = $v['begin'] ?? null;
+                                $end = $v['end'] ?? null;
+                                if ($begin && $end) {
+                                    $st_slot = [
+                                        's_sec' => timeToSeconds($begin),
+                                        'e_sec' => timeToSeconds($end),
+                                    ];
+                                    $data[$key]['st_slot'][] = $st_slot;
+                                }
+                            }
                         }
                     }
-
                 }
             }
         }
         return $data;
+    }
+
+    public function arrayWeeks()
+    {
+        return arrayWeeks();
     }
 
     /**
