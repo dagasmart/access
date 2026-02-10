@@ -22,7 +22,9 @@ Route::group([
     $router->get('access/enterprise/{enterprise_id}/permission/{id}/code', [Controllers\AccessPermissionController::class, 'permissionCode']);
     $router->get('access/enterprise/{enterprise_id}/permission/all', [Controllers\AccessPermissionController::class, 'permissionAll']);
 
+
     $router->resource('access/permission', Controllers\AccessPermissionController::class);
+    $router->resource('access/dispatch', Controllers\AccessDispatchController::class);
     $router->resource('access/device', Controllers\AccessDeviceController::class);
     $router->resource('access/user', Controllers\AccessUserController::class);
     $router->resource('access/log', Controllers\AccessLogController::class);

@@ -27,10 +27,10 @@ class AccessServiceProvider extends ServiceProvider
         ],
         [
             'parent' => '门禁管家',
-            'title' => '数据分发',
-            'url' => '/biz/access/dispatch',
+            'title' => '权限管理',
+            'url' => '/biz/access/permission',
             'url_type' => 1,
-            'icon' => 'fluent-mdl2:distribute-down',
+            'icon' => 'icon-park-outline:permissions',
         ],
         [
             'parent' => '门禁管家',
@@ -41,10 +41,10 @@ class AccessServiceProvider extends ServiceProvider
         ],
         [
             'parent' => '门禁管家',
-            'title' => '权限管理',
-            'url' => '/biz/access/permission',
+            'title' => '数据分发',
+            'url' => '/biz/access/dispatch',
             'url_type' => 1,
-            'icon' => 'icon-park-outline:permissions',
+            'icon' => 'fluent-mdl2:distribute-down',
         ],
         [
             'parent' => '门禁管家',

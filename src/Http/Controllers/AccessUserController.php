@@ -219,9 +219,9 @@ class AccessUserController extends AdminController
                 ]),
                 amis()->Tab()->title('权限设置')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
-                        amis()->SelectControl('permission_code', '用户权限')
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/all'))
-                            ->value(),
+//                        amis()->SelectControl('permission_code', '用户权限')
+//                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/all'))
+//                            ->value(),
 //                        amis()->DateRangeControl('expiry_date','进出日期')
 //                            ->valueFormat('YYYY-MM-DD')
 //                            ->description('<span class=text-blue-300>空值为长期</span>'),
