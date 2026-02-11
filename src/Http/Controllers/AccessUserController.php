@@ -87,7 +87,7 @@ class AccessUserController extends AdminController
                     ]),
                 amis()->TableColumn('user_type', '用户类型')
                     ->searchable(
-                        amis()->SelectControl('user_type')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
+                        amis()->SelectControl('user_type')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
                     )
                     ->set('type', 'select')
                     ->set('options', Enum::user_type())

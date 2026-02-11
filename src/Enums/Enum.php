@@ -36,18 +36,32 @@ enum Enum
      * 用户类型
      * @return array|array[]
      */
-    public static function user_type(): array
+    public static function user_type($disabled = true): array
     {
         $data = [];
         if (is_school_module()) {
-            $data[] = ['value' => 'student', 'label' => '学生', 'color' => 'info', 'disabled' => true];
-            $data[] = ['value' => 'patriarch', 'label' => '家长', 'color' => 'warning', 'disabled' => true];
-            $data[] = ['value' => 'worker', 'label' => '教师', 'color' => 'success', 'disabled' => true];
+            $data[] = ['value' => 'student', 'label' => '学生', 'color' => 'info', 'disabled' => $disabled];
+            $data[] = ['value' => 'patriarch', 'label' => '家长', 'color' => 'warning', 'disabled' => $disabled];
+            $data[] = ['value' => 'worker', 'label' => '教师', 'color' => 'success', 'disabled' => $disabled];
         } else {
-            $data[] = ['value' => 'worker', 'label' => '员工', 'color' => 'success', 'disabled' => true];
+            $data[] = ['value' => 'worker', 'label' => '员工', 'color' => 'success', 'disabled' => $disabled];
         }
         $data[] = ['value' => 'visitor', 'label' => '访客', 'color' => 'default'];
         return $data;
+    }
+
+    /**
+     * 分发状态
+     */
+    public static function dispatch_state(): array
+    {
+        return [
+            ['label' => '待分发', 'value' => 0, 'icon' => 'schedule'],
+            ['label' => '成功', 'value' => 1, 'icon' => 'success'],
+            ['label' => '失败', 'value' => 2, 'icon' => 'fail'],
+            ['label' => '推送中', 'value' => -1, 'icon' => 'rolling'],
+            ['label' => '异常', 'value' => -2, 'icon' => 'warning'],
+        ];
     }
 
     /**

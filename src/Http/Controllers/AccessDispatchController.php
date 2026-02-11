@@ -2,11 +2,12 @@
 
 namespace DagaSmart\Access\Http\Controllers;
 
+use DagaSmart\Access\Enums\Enum;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\Access\Services\AccessDispatchService;
+use DagaSmart\BizAdmin\Renderers\Panel;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
-use DagaSmart\Organization\Enums\Enum;
 
 
 /**
@@ -37,12 +38,13 @@ class AccessDispatchController extends AdminController
     /**
      * 知识首页页面，左侧分类树，右侧知识列表
      */
-    public function page()
+    public function page(): Page
     {
         return amis()->Page()->body(
             amis()->Flex()->items([
                 $this->tree(),
                 $this->list(),
+                //$this->chart(),
             ])
         );
     }
@@ -52,7 +54,7 @@ class AccessDispatchController extends AdminController
      */
     public function tree()
     {
-        return amis()->Card()->className('w-1/4 mr-5 mb-0')->body([
+        return amis()->Card()->className('w-1/5 mr-5 mb-0')->body([
             amis()
                 ->Nav()
                 ->style(['padding' => '10px 0'])
@@ -63,25 +65,46 @@ class AccessDispatchController extends AdminController
     }
 
     /**
+     * 左侧分类导航，用于筛选右侧列表
+     */
+    public function chart()
+    {
+        return amis()->Card()->className('w-1/4 ml-5 mb-0')->body([
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('异常排查')->icon('menu')->body([
+                ]),
+                amis()->Tab()->title('分析')->icon('menu')->body([
+                ]),
+            ]),
+        ]);
+    }
+
+    /**
      * 知识列表页面，展示知识条目及操作按钮
      */
     public function list()
     {
-        $module_enterprise_alias = module_enterprise_alias();
-
         $crud = $this->baseCRUD()
             ->id('dispatch-crud') // 供左侧导航和刷新使用的 CRUD 容器 ID
+            ->data(['module_enterprise_alias' => module_enterprise_alias()])
             ->filterTogglable(false)
             ->headerToolbar([
                 $this->createButton('drawer', 'lg'),
                 ...$this->baseHeaderToolBar(),
                 // 当前分类说明，提示用户正在查看哪个分类下的知识
-                amis()->Tpl()->tpl("当前{$module_enterprise_alias}：<b>\${enterprise_name || '全部'}</b>")->align('right'),
+                amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_enterprise_alias}：</span><b>${enterprise_name || "全部"}</b>')->className('text-current')->align('right'),
             ])
+            ->autoFillHeight(true)
             ->columns([
-                amis()->TableColumn('user.user_name', '姓名')
-                    ->copyable()
-                    ->searchable(),
+                amis()->TableColumn('user_card', '用户/身份证号')
+                    ->searchable(amis()->FormControl()->body([
+                        amis()->TextControl('user_name', '用户名')->placeholder('请输入查找的用户名')->clearable(),
+                        amis()->TextControl('id_card', '身份证号')->placeholder('请输入查找的身份证号或后四位')->clearable(),
+                    ]))
+                    ->set('type', 'tpl')
+                    ->set('tpl', '${user.user_name}<h5 class="m-0 mt-1.5 text-secondary">${user.id_card}</h5>')
+                    ->align('center')
+                    ->width(100),
 
                 amis()->TableColumn('user.user_avatar','照片')
                     ->set('type', 'avatar')
@@ -113,24 +136,57 @@ class AccessDispatchController extends AdminController
                         ]
                     ]),
 
-                amis()->TableColumn('device.device_name', '设备场景')
+                amis()->TableColumn('device.facility_id', '${module_enterprise_alias}/设备信息')
+                    ->searchable(amis()->FormControl()->body([
+                        amis()->SelectControl('enterprise_id', '${module_enterprise_alias}')
+                            ->options($this->service->getEnterpriseAll())
+                            ->clearable(),
+                        amis()->TreeSelectControl('facility_id', '设施主体')
+                            ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
+                            ->options($this->service->getFacilityAll())
+                            ->disabledOn('${!enterprise_id}')
+                            ->onlyLeaf()
+                            ->searchable()
+                            ->clearable(),
+                        amis()->TextControl('device_name', '设备名称')->placeholder('请输入查找的设备名称')->clearable(),
+                        amis()->TextControl('device_sn', '设备编号')->placeholder('请输入查找的设备编号')->clearable(),
+                    ]))
                     ->set('type', 'tpl')
-                    ->set('tpl', '${device.rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">设施：${device.rel.facility.level_name}</h5><h5 class="m-0 mt-1 text-secondary">名称：${device.device_name}</h5><h5 class="m-0 mt-1 text-secondary">编号：${device.device_sn}</h5>'),
+                    ->set('tpl', '${device.rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">设施：${device.rel.facility.level_name}</h5><h5 class="m-0 mt-1 text-secondary">名称：${device.device_name}</h5><h5 class="m-0 mt-1 text-secondary">编号：${device.device_sn}</h5>')
+                    ->width(180),
 
-                amis()->TableColumn('priority', '优先级')
+                amis()->TableColumn('user.user_type', '类型')
+                    ->searchable(
+                        amis()->SelectControl('user_type')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
+                    )
+                    ->set('type', 'input-tag')
+                    ->set('options', Enum::user_type(false))
+                    ->set('multiple', true)
+                    ->set('static', true),
+
+                amis()->TableColumn('sort', '优先级')
                     ->sortable()
                     ->quickEdit(
                         amis()->NumberControl()->min(0)
                     ),
 
-                amis()->TableColumn('status', '状态')
+                amis()->TableColumn('state', '状态')
+                    ->searchable(
+                        amis()->SelectControl('state')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
+                    )
                     ->type('status')
-                    ->map([1 => 'success', 0 => 'warning'])
-                    ->labelMap([1 => '启用', 0 => '停用']),
+//                    ->set('type','mapping')
+//                    ->set('map', ['*' => [
+//                        'type' => 'status',
+//                        'source' => Enum::dispatch_state()
+//                    ]]),
+                    ->map(array_column(Enum::dispatch_state(), 'icon', 'value'))
+                    ->labelMap(array_column(Enum::dispatch_state(), 'label', 'value')),
 
-                amis()->TableColumn('created_at', '创建时间')
+                amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')
-                    ->sortable(),
+                    ->sortable()
+                    ->width(100),
 
                 $this->rowActions('drawer', 'lg'),
             ]);
@@ -141,7 +197,7 @@ class AccessDispatchController extends AdminController
     /**
      * 知识表单页面，支持新增和编辑
      */
-    public function form($isEdit = false)
+    public function form($isEdit = false): Form
     {
         return $this->baseForm()->body($this->getFormBody());
     }
@@ -285,4 +341,52 @@ class AccessDispatchController extends AdminController
                 ->collapsed(false),
         ];
     }
+
+    public function barChart(): Panel
+    {
+        return amis()->Panel()->className('w-full')->body([
+            amis()->Chart()->height(250)->config([
+                'backgroundColor' => '',
+                'title'           => [
+                    'text' => '任务汇总统计',
+                    'subtext' => '统计图'
+                ],
+                'tooltip'         => ['trigger' => 'axis'],
+                'legend'          => ['data' => ['最高气温', '最低气温']],
+                'xAxis'           => [
+                    'type'        => 'category',
+                    'boundaryGap' => false,
+                    'data'        => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                ],
+                'yAxis'           => ['type' => 'value'],
+                'grid'            => ['left' => '7%', 'right' => '3%', 'top' => 60, 'bottom' => 30,],
+                'legend'          => ['data' => ['成功', '失败']],
+                'series'          => [
+                    [
+                        'name'      => '成功',
+                        'data'      => [10,2,30,4,50,16,7],
+                        'type'      => 'line',
+                        'areaStyle' => [],
+                        'smooth'    => true,
+                        'symbol'    => 'none',
+                    ],
+                    [
+                        'name'      => '失败',
+                        'data'      => [7,6,5,4,3,2,1],
+                        'type'      => 'bar',
+                        'areaStyle' => [],
+                        'smooth'    => true,
+                        'symbol'    => 'none',
+                    ],
+                ],
+            ])
+        ])->id('pie-chart-panel')->set('animations', [
+            'enter' => [
+                'delay'    => 0.1,
+                'duration' => 0.5,
+                'type'     => 'zoomIn',
+            ],
+        ]);
+    }
+
 }

@@ -21,13 +21,7 @@ class AccessDispatchService extends AdminService
 
     public function loadRelations($query): void
     {
-        $enterprise_id = $this->request->enterprise_id ?? null;
-
-        $query->whereHas('user', function ($query) use ($enterprise_id) {
-            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
-                    $query->where('enterprise_id', $enterprise_id);
-                });
-        })->with(['user', 'device']);
+        $query->with(['user', 'device']);
     }
 
     public function sortable($query): void
@@ -42,6 +36,44 @@ class AccessDispatchService extends AdminService
     public function searchable($query): void
     {
         parent::searchable($query);
+
+        $query->whereHas('user', function ($query) {
+            $enterprise_id = request('enterprise_id');
+            $user_name = request('user_name');
+            $id_card = request('id_card');
+            $user_type = request('user_type');
+            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
+                $query->where('enterprise_id', $enterprise_id);
+            })->when($user_name, function ($query) use ($user_name) {
+                $query->where('user_name', 'like', "%$user_name%");
+            })->when($id_card, function ($query) use ($id_card) {
+                if (mb_strlen($id_card, 'UTF8') == 4) {
+                    $query->where('id_card', 'like', "%$id_card");
+                } else {
+                    $query->where(['id_card' => $id_card]);
+                }
+            })->when($user_type, function ($query) use ($user_type) {
+                $query->where(['user_type' => $user_type]);
+            });
+        })->whereHas('device', function ($query) {
+            $enterprise_id = request('enterprise_id');
+            $facility_id = request('facility_id');
+            $device_name = request('device_name');
+            $device_sn = request('device_sn');
+            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
+                $query->whereHas('rel', function ($query) use ($enterprise_id) {
+                    $query->where('enterprise_id', $enterprise_id);
+                });
+            })->when($facility_id, function ($query) use ($facility_id) {
+                $query->whereHas('rel', function ($query) use ($facility_id) {
+                    $query->where('facility_id', $facility_id);
+                });
+            })->when($device_name, function ($query) use ($device_name) {
+                $query->where('device_name', 'like', "%$device_name%");
+            })->when($device_sn, function ($query) use ($device_sn) {
+                $query->where(['device_sn' => $device_sn]);
+            });
+        });
         //$query->where(['device_type' => 'access']); //只查门禁设备
     }
 
@@ -112,10 +144,10 @@ class AccessDispatchService extends AdminService
      * 递归选择项
      * @return array
      */
-    public function options(): array
+    public function getFacilityAll(): array
     {
-        $id = request()->id;
-        $enterprise_id = request()->enterprise_id;
+        $id = request('id');
+        $enterprise_id = request('enterprise_id');
         $data = $this->query()->from('biz_facility as a')
             ->join('biz_enterprise_facility as b','a.id','=','b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
