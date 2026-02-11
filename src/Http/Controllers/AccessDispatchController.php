@@ -140,13 +140,16 @@ class AccessDispatchController extends AdminController
                     ->searchable(amis()->FormControl()->body([
                         amis()->SelectControl('enterprise_id', '${module_enterprise_alias}')
                             ->options($this->service->getEnterpriseAll())
+                            ->autoFill(['enterprise_name' => '${label}'])
+                            ->searchable()
                             ->clearable(),
+                        amis()->HiddenControl('enterprise_name', '${module_enterprise_alias}'),
                         amis()->TreeSelectControl('facility_id', '设施主体')
                             ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
                             ->options($this->service->getFacilityAll())
+                            ->searchable()
                             ->disabledOn('${!enterprise_id}')
                             ->onlyLeaf()
-                            ->searchable()
                             ->clearable(),
                         amis()->TextControl('device_name', '设备名称')->placeholder('请输入查找的设备名称')->clearable(),
                         amis()->TextControl('device_sn', '设备编号')->placeholder('请输入查找的设备编号')->clearable(),
@@ -172,7 +175,7 @@ class AccessDispatchController extends AdminController
 
                 amis()->TableColumn('state', '状态')
                     ->searchable(
-                        amis()->SelectControl('state')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
+                        amis()->SelectControl('state')->options(Enum::dispatch_state())->checkAll()->multiple()->clearable(),
                     )
                     ->type('status')
 //                    ->set('type','mapping')
