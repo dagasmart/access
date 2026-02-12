@@ -223,6 +223,11 @@ class AccessDeviceController extends AdminController
         return $this->service->options();
     }
 
+    public function deviceAll()
+    {
+        return $this->service->deviceAll();
+    }
+
 
     protected function rowSetAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
     {

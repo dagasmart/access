@@ -79,8 +79,21 @@ class AccessDeviceService extends AdminService
      */
     public function getEnterpriseAll(): array
     {
-        return (new EnterpriseService)->query()
+        $model = new EnterpriseService;
+
+        return $model->query()
             ->select(['id as value', 'enterprise_name as label', 'id'])
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * 设备列表
+     */
+    public function deviceAll(): array
+    {
+        $model = new EnterpriseFacilityDevice;
+        return $model->with('device')
             ->get()
             ->toArray();
     }

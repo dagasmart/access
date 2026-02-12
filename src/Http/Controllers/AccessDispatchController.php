@@ -7,7 +7,6 @@ use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\Access\Services\AccessDispatchService;
 use DagaSmart\BizAdmin\Renderers\Panel;
-use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
 
 
 /**
@@ -202,7 +201,29 @@ class AccessDispatchController extends AdminController
      */
     public function form($isEdit = false): Form
     {
-        return $this->baseForm()->body($this->getFormBody());
+        return $this->baseForm()->body([
+            amis()->SelectControl('enterprise_id', '机构单位')
+                ->options($this->service->getEnterpriseAll())
+                ->value('${rel.enterprise_id}')
+                ->searchable()
+                ->clearable()
+                ->required(),
+            amis()->TreeSelectControl('facility_id', '设施主体')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
+                ->options($this->service->getFacilityAll())
+                ->value('${rel.facility.id}')
+                ->disabledOn('${!enterprise_id}')
+                ->onlyLeaf()
+                ->searchable()
+                ->clearable()
+                ->required(),
+            amis()->SelectControl('device_id', '分发设备')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/options'))
+                ->placeholder('例:智能门禁机-进-1')
+                ->disabledOn('${!facility_id}')
+                ->clearable()
+                ->required(),
+        ]);
     }
 
     /**
