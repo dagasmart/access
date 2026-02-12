@@ -3,6 +3,7 @@
 namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessDispatch;
+use DagaSmart\Organization\Models\Device;
 use DagaSmart\Organization\Models\Enterprise;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
 use DagaSmart\Organization\Services\EnterpriseService;
@@ -162,6 +163,19 @@ class AccessDispatchService extends AdminService
             ->get()
             ->toArray();
         return array2tree($data);
+    }
+
+    /**
+     * 机构单位列表
+     */
+    public function getDeviceAll(): array
+    {
+        $model = new Device;
+        return $model->query()
+            ->select(['id as value', 'device_name as label', 'id'])
+            ->where(['device_type'=>'access'])
+            ->get()
+            ->toArray();
     }
 
 }

@@ -88,7 +88,7 @@ class AccessDispatchController extends AdminController
             ->data(['module_enterprise_alias' => module_enterprise_alias()])
             ->filterTogglable(false)
             ->headerToolbar([
-                $this->createButton('drawer', 'lg'),
+                $this->createButton('drawer'),
                 ...$this->baseHeaderToolBar(),
                 // 当前分类说明，提示用户正在查看哪个分类下的知识
                 amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_enterprise_alias}：</span><b>${enterprise_name || "全部"}</b>')->className('text-current')->align('right'),
@@ -190,7 +190,7 @@ class AccessDispatchController extends AdminController
                     ->sortable()
                     ->width(100),
 
-                $this->rowActions('drawer', 'lg'),
+                $this->rowActions('drawer'),
             ]);
 
         return $this->baseList($crud);
@@ -202,27 +202,70 @@ class AccessDispatchController extends AdminController
     public function form($isEdit = false): Form
     {
         return $this->baseForm()->body([
-            amis()->SelectControl('enterprise_id', '机构单位')
+            amis()->SelectControl('enterprise_id', module_enterprise_alias())
                 ->options($this->service->getEnterpriseAll())
-                ->value('${rel.enterprise_id}')
+                ->value('${device.rel.enterprise_id}')
                 ->searchable()
                 ->clearable()
+                ->disabled($isEdit)
                 ->required(),
             amis()->TreeSelectControl('facility_id', '设施主体')
                 ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
                 ->options($this->service->getFacilityAll())
-                ->value('${rel.facility.id}')
+                ->value('${device.rel.facility_id}')
                 ->disabledOn('${!enterprise_id}')
                 ->onlyLeaf()
                 ->searchable()
                 ->clearable()
                 ->required(),
-            amis()->SelectControl('device_id', '分发设备')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/options'))
-                ->placeholder('例:智能门禁机-进-1')
+            amis()->TreeSelectControl('device_brand', '设备品牌')
+                ->source(admin_url('biz/enterprise/device/access/brand/options'))
+                ->value('${device.device_brand}')
+                ->placeholder('请选择品牌')
                 ->disabledOn('${!facility_id}')
+                ->searchable()
+                ->clearable(),
+            amis()->SelectControl('device_id', '分发设备')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                ->options($this->service->getDeviceAll())
+                ->value('${device.id}')
+                ->placeholder('请选择设备')
+                ->disabledOn('${!facility_id}')
+                ->showInvalidMatch()
+                ->multiple()
+                ->searchable()
                 ->clearable()
                 ->required(),
+            amis()->RadiosControl('user_type', '用户类型')
+                ->options(Enum::user_type(false))
+                ->value('${user.user_type}')
+                ->required()
+                ->static($isEdit),
+            amis()->TreeSelectControl('grade_id', '年级')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade'))
+                ->value('${user.user_name}')
+                ->disabledOn('${!enterprise_id}')
+                ->searchable()
+                ->onlyLeaf()
+                ->required()
+                ->visible(!$isEdit)
+                ->visibleOn('${user_type === "student" || user_type === "patriarch"}'),
+            amis()->SelectControl('classes_id', '班级')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                ->value('${user.user_name}')
+                ->disabledOn('${!grade_id}')
+                ->searchable()
+                ->required()
+                ->visible(!$isEdit)
+                ->visibleOn('${user_type === "student" || user_type === "patriarch"}'),
+            amis()->SelectControl('access_user_id', '用户姓名')
+                ->source(admin_url('biz/enterprise/device/access/brand/options'))
+                ->value('${user.user_name}')
+                ->searchable()
+                ->required()
+                ->visible(!$isEdit),
+            amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
+            amis()->StaticExactControl('user.id_card','身份证号')->visible($isEdit),
         ]);
     }
 
