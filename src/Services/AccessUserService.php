@@ -27,8 +27,7 @@ class AccessUserService extends AdminService
 //                ->when($mer_id, function ($query) use ($mer_id) {
 //                    $query->where('mer_id', $mer_id);
 //                });
-//        });
-        //$query->with(['rel']);
+//        })->with(['rel']);
     }
 
     public function sortable($query): void
@@ -44,6 +43,20 @@ class AccessUserService extends AdminService
     {
         parent::searchable($query);
         //$query->where(['device_type' => 'access']); //只查门禁设备
+    }
+
+    public function list(): array
+    {
+        $list = parent::list();
+        if ($list['items']) {
+            foreach ($list['items'] as &$item) {
+                if ($item['user_type'] == 'patriarch') {
+                    $item['rel'] = 111111111111;
+                }
+                $item['rel'] = 111111111111;
+            }
+        }
+        return $list;
     }
 
     /**
@@ -129,6 +142,30 @@ class AccessUserService extends AdminService
     {
         $student = new \DagaSmart\Organization\Services\StudentService;
         return $student->getClassesAll();
+    }
+
+    public function userAll(): array
+    {
+        $enterprise_id = request('enterprise_id');
+        $grade_id = request('grade_id');
+        $classes_id = request('classes_id');
+        $user_type = request('user_type');
+        if ($user_type == 'student') {
+            return $this->query()
+                ->whereHas('student', function ($query) use ($enterprise_id, $grade_id, $classes_id) {
+                    $query
+                        ->where('enterprise_id', $enterprise_id)
+                        ->where('grade_id', $grade_id)
+                        ->when($classes_id, function ($query) use ($classes_id) {
+                            $query->where('classes_id', $classes_id);
+                        });
+                })
+                ->with('student')
+                ->where('state', 1)
+                ->get(['id as value', 'user_name as label', 'user_id', 'id_card', admin_raw("concat(user_name,'⟨',id_card,'⟩') as label_as")])
+                ->toArray();
+        }
+        return [];
     }
 
     /**

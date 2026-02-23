@@ -32,19 +32,20 @@ class AccessUser extends Model
         $this->attributes['user_avatar'] = admin_image_path($value);
     }
 
+    public function student(): hasOne
+    {
+        return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id');
+    }
+
     public function rel(): hasOne
     {
         if ($this->user_type == 'worker') {
             return $this->hasOne(Worker::class, 'id', 'worker_id');
-        } elseif ($this->user_type == 'student') {
-            return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
-        } elseif ($this->user_type == 'patriarch') {
-            return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
-        } elseif ($this->user_type == 'visitor') {
-            return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
         } else {
             return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
         }
     }
+
+
 
 }

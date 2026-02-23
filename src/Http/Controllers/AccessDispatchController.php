@@ -3,9 +3,9 @@
 namespace DagaSmart\Access\Http\Controllers;
 
 use DagaSmart\Access\Enums\Enum;
+use DagaSmart\Access\Services\AccessDispatchService;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
-use DagaSmart\Access\Services\AccessDispatchService;
 use DagaSmart\BizAdmin\Renderers\Panel;
 
 
@@ -35,7 +35,7 @@ class AccessDispatchController extends AdminController
     }
 
     /**
-     * 知识首页页面，左侧分类树，右侧知识列表
+     * 分发首页页面，左侧分类树，右侧分发列表
      */
     public function page(): Page
     {
@@ -79,7 +79,7 @@ class AccessDispatchController extends AdminController
     }
 
     /**
-     * 知识列表页面，展示知识条目及操作按钮
+     * 分发列表页面，展示机构条目及操作按钮
      */
     public function list()
     {
@@ -90,7 +90,7 @@ class AccessDispatchController extends AdminController
             ->headerToolbar([
                 $this->createButton('drawer'),
                 ...$this->baseHeaderToolBar(),
-                // 当前分类说明，提示用户正在查看哪个分类下的知识
+                // 当前分类说明，提示用户正在查看哪个分类下的分发
                 amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_enterprise_alias}：</span><b>${enterprise_name || "全部"}</b>')->className('text-current')->align('right'),
             ])
             ->autoFillHeight(true)
@@ -190,18 +190,18 @@ class AccessDispatchController extends AdminController
                     ->sortable()
                     ->width(100),
 
-                $this->rowActions('drawer'),
+                $this->rowActions('drawer')->fixed('right')
             ]);
 
         return $this->baseList($crud);
     }
 
     /**
-     * 知识表单页面，支持新增和编辑
+     * 分发表单页面，支持新增和编辑
      */
     public function form($isEdit = false): Form
     {
-        return $this->baseForm()->body([
+        return $this->baseForm()->data(['enterprise_id' => '${enterprise_id}'])->body([
             amis()->SelectControl('enterprise_id', module_enterprise_alias())
                 ->options($this->service->getEnterpriseAll())
                 ->value('${device.rel.enterprise_id}')
@@ -214,6 +214,7 @@ class AccessDispatchController extends AdminController
                 ->options($this->service->getFacilityAll())
                 ->value('${device.rel.facility_id}')
                 ->disabledOn('${!enterprise_id}')
+                ->clearValueOnSourceChange()
                 ->onlyLeaf()
                 ->searchable()
                 ->clearable()
@@ -223,6 +224,7 @@ class AccessDispatchController extends AdminController
                 ->value('${device.device_brand}')
                 ->placeholder('请选择品牌')
                 ->disabledOn('${!facility_id}')
+                ->clearValueOnSourceChange()
                 ->searchable()
                 ->clearable(),
             amis()->SelectControl('device_id', '分发设备')
@@ -231,6 +233,7 @@ class AccessDispatchController extends AdminController
                 ->value('${device.id}')
                 ->placeholder('请选择设备')
                 ->disabledOn('${!facility_id}')
+                ->clearValueOnSourceChange()
                 ->showInvalidMatch()
                 ->multiple()
                 ->searchable()
@@ -239,38 +242,49 @@ class AccessDispatchController extends AdminController
             amis()->RadiosControl('user_type', '用户类型')
                 ->options(Enum::user_type(false))
                 ->value('${user.user_type}')
+                ->disabledOn('${!enterprise_id}')
+                ->visibleOn('${!!enterprise_id}')
                 ->required()
                 ->static($isEdit),
             amis()->TreeSelectControl('grade_id', '年级')
                 ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade'))
-                ->value('${user.user_name}')
                 ->disabledOn('${!enterprise_id}')
                 ->searchable()
                 ->onlyLeaf()
-                ->required()
-                ->visible(!$isEdit)
-                ->visibleOn('${user_type === "student" || user_type === "patriarch"}'),
+                ->required(!$isEdit)
+                //->visible(!$isEdit)
+                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!enterprise_id}'),
             amis()->SelectControl('classes_id', '班级')
                 ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
-                ->value('${user.user_name}')
                 ->disabledOn('${!grade_id}')
                 ->searchable()
                 ->required()
                 ->visible(!$isEdit)
-                ->visibleOn('${user_type === "student" || user_type === "patriarch"}'),
-            amis()->SelectControl('access_user_id', '用户姓名')
-                ->source(admin_url('biz/enterprise/device/access/brand/options'))
-                ->value('${user.user_name}')
+                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!grade_id}'),
+            amis()->SelectControl('access_user_id', '用户')
+                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/all'))
+                ->disabledOn('${!classes_id}')
+//                ->selectMode('table')
+//                ->columns([
+//                    ['name' => 'label', 'label' => '姓名'],
+//                    ['name' => 'id_card', 'label' => '身份证号'],
+//                ])
+                ->labelField('label_as')
+                ->clearValueOnSourceChange()
                 ->searchable()
+                ->clearable()
+                ->checkAll()
+                ->multiple()
                 ->required()
-                ->visible(!$isEdit),
+                ->visible(!$isEdit)
+                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!classes_id}'),
             amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
             amis()->StaticExactControl('user.id_card','身份证号')->visible($isEdit),
         ]);
     }
 
     /**
-     * 编辑知识数据，编辑时需要将 metadata JSON 拆解成表单字段，否则无法回显
+     * 编辑分发数据，编辑时需要将 metadata JSON 拆解成表单字段，否则无法回显
      */
     public function edit($id)
     {
@@ -281,7 +295,7 @@ class AccessDispatchController extends AdminController
     }
 
     /**
-     * 知识详情页面，展示知识所有字段信息
+     * 分发详情页面，展示分发所有字段信息
      */
     public function detail()
     {
@@ -301,7 +315,7 @@ class AccessDispatchController extends AdminController
 
     /**
      * 解码 metadata JSON 并合并到数据数组中
-     * metadata 结构来源于知识扩展字段，方便表单友好化展示和编辑
+     * metadata 结构来源于分发扩展字段，方便表单友好化展示和编辑
      */
     protected function decodeMetadata(array $data): array
     {
@@ -318,12 +332,12 @@ class AccessDispatchController extends AdminController
     }
 
     /**
-     * 获取知识表单的表单元素配置
+     * 获取分发表单的表单元素配置
      */
     protected function getFormBody(): array
     {
         return [
-            amis()->TextControl('title', '知识标题')
+            amis()->TextControl('title', '分发标题')
                 ->required()
                 ->maxLength(100),
 
@@ -336,12 +350,12 @@ class AccessDispatchController extends AdminController
                 ->required()
                 //->options(AccessDispatchService::getEnterpriseAll())
                 ->value('public')
-                ->description('控制该知识的可见范围：公开（所有人）、私有（仅自己）'),
+                ->description('控制该分发的可见范围：公开（所有人）、私有（仅自己）'),
 
 
-            amis()->WangEditor()->name('content')->label('知识内容')
+            amis()->WangEditor()->name('content')->label('分发内容')
                 ->required()
-                ->placeholder('请输入知识内容'),
+                ->placeholder('请输入分发内容'),
 
             amis()->NumberControl('priority', '优先级')
                 ->value(100)

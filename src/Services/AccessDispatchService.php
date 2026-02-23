@@ -3,6 +3,7 @@
 namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessDispatch;
+use DagaSmart\Access\Models\AccessUser;
 use DagaSmart\Organization\Models\Device;
 use DagaSmart\Organization\Models\Enterprise;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
@@ -76,6 +77,17 @@ class AccessDispatchService extends AdminService
             });
         });
         //$query->where(['device_type' => 'access']); //只查门禁设备
+    }
+
+    public function list(): array
+    {
+        $list = parent::list();
+        if ($list['items']) {
+            foreach ($list['items'] as &$item) {
+                $item['user_type1111'] = '1111111111111111';
+            }
+        }
+        return $list;
     }
 
     /**

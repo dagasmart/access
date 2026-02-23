@@ -20,6 +20,8 @@ Route::group([
 ], function (Router $router) {
     $router->get('access/enterprise/{enterprise_id}/facility/options', [Controllers\AccessDeviceController::class, 'options']);
     $router->get('access/enterprise/{enterprise_id}/facility/{facility_id}/device/all', [Controllers\AccessDeviceController::class, 'deviceAll']);
+    $router->get('access/enterprise/{enterprise_id}/department/{department_id}/user/{user_type}/all', [Controllers\AccessUserController::class, 'userAll']);
+    $router->get('access/enterprise/{enterprise_id}/grade/{grade_id}/classes/{classes_id}/user/{user_type}/all', [Controllers\AccessUserController::class, 'userAll']);
 
     $router->get('access/enterprise/{enterprise_id}/permission/all', [Controllers\AccessPermissionController::class, 'permissionAll']);
     $router->get('access/enterprise/{enterprise_id}/permission/{id}/code', [Controllers\AccessPermissionController::class, 'permissionCode']);

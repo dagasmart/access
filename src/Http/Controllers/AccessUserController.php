@@ -298,6 +298,15 @@ class AccessUserController extends AdminController
         return $this->service->options();
     }
 
+    /**
+     * 获取用户列表
+     * @return array
+     */
+    public function userAll()
+    {
+        return $this->service->userAll();
+    }
+
 
     protected function rowSetAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
     {
