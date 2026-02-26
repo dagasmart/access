@@ -161,12 +161,13 @@ class AccessDispatchController extends AdminController
                             ->onlyLeaf()
                             ->clearable(),
                         amis()->TextControl('device_name', '设备名称')->placeholder('请输入查找的设备名称')->clearable(),
-                        amis()->SelectControl('access_device_id', '设备编号')
+                        amis()->SelectControl('device_id', '设备编号')
                             ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
                             ->options($this->service->getDeviceAll())
                             ->placeholder('请输入查找的设备编号')
+                            ->clearValueOnSourceChange()
+                            ->multiple(false)
                             ->searchable()
-                            ->multiple()
                             ->clearable(),
                     ]))
                     ->set('type', 'tpl')
@@ -190,7 +191,8 @@ class AccessDispatchController extends AdminController
 //                        'source' => Enum::dispatch_state()
 //                    ]]),
                     ->map(array_column(Enum::dispatch_state(), 'icon', 'value'))
-                    ->labelMap(array_column(Enum::dispatch_state(), 'label', 'value')),
+                    ->labelMap(array_column(Enum::dispatch_state(), 'label', 'value'))
+                    ->set('align', 'center'),
 
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')

@@ -61,7 +61,7 @@ class AccessDispatchService extends AdminService
             $enterprise_id = request('enterprise_id');
             $facility_id = request('facility_id');
             $device_name = request('device_name');
-            $device_sn = request('device_sn');
+            $device_id = request('device_id');
             $query->when($enterprise_id, function ($query) use ($enterprise_id) {
                 $query->whereHas('rel', function ($query) use ($enterprise_id) {
                     $query->where('enterprise_id', $enterprise_id);
@@ -72,8 +72,9 @@ class AccessDispatchService extends AdminService
                 });
             })->when($device_name, function ($query) use ($device_name) {
                 $query->where('device_name', 'like', "%$device_name%");
-            })->when($device_sn, function ($query) use ($device_sn) {
-                $query->where(['device_sn' => $device_sn]);
+            })->when($device_id, function ($query) use ($device_id) {
+                $ids = explode(',', $device_id);
+                $query->whereIn('id', $ids);
             });
         });
         //$query->where(['device_type' => 'access']); //只查门禁设备

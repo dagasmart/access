@@ -59,7 +59,7 @@ enum Enum
             ['label' => '待分发', 'value' => 0, 'icon' => 'schedule'],
             ['label' => '成功', 'value' => 1, 'icon' => 'success'],
             ['label' => '失败', 'value' => 2, 'icon' => 'fail'],
-            ['label' => '推送中', 'value' => -1, 'icon' => 'rolling'],
+            ['label' => '排队中', 'value' => -1, 'icon' => 'rolling'],
             ['label' => '异常', 'value' => -2, 'icon' => 'warning'],
         ];
     }
