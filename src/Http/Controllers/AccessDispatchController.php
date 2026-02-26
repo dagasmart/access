@@ -93,6 +93,7 @@ class AccessDispatchController extends AdminController
                 // 当前分类说明，提示用户正在查看哪个分类下的分发
                 amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_enterprise_alias}：</span><b>${enterprise_name || "全部"}</b>')->className('text-current')->align('right'),
             ])
+            ->combineNum(3)
             ->autoFillHeight(true)
             ->columns([
                 amis()->TableColumn('user_card', '用户/身份证号')
@@ -135,6 +136,15 @@ class AccessDispatchController extends AdminController
                         ]
                     ]),
 
+                amis()->TableColumn('user.user_type', '类型')
+                    ->searchable(
+                        amis()->SelectControl('user_type')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
+                    )
+                    ->set('type', 'input-tag')
+                    ->set('options', Enum::user_type(false))
+                    ->set('multiple', true)
+                    ->set('static', true),
+
                 amis()->TableColumn('device.facility_id', '${module_enterprise_alias}/设备信息')
                     ->searchable(amis()->FormControl()->body([
                         amis()->SelectControl('enterprise_id', '${module_enterprise_alias}')
@@ -151,20 +161,17 @@ class AccessDispatchController extends AdminController
                             ->onlyLeaf()
                             ->clearable(),
                         amis()->TextControl('device_name', '设备名称')->placeholder('请输入查找的设备名称')->clearable(),
-                        amis()->TextControl('device_sn', '设备编号')->placeholder('请输入查找的设备编号')->clearable(),
+                        amis()->SelectControl('access_device_id', '设备编号')
+                            ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                            ->options($this->service->getDeviceAll())
+                            ->placeholder('请输入查找的设备编号')
+                            ->searchable()
+                            ->multiple()
+                            ->clearable(),
                     ]))
                     ->set('type', 'tpl')
                     ->set('tpl', '${device.rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">设施：${device.rel.facility.level_name}</h5><h5 class="m-0 mt-1 text-secondary">名称：${device.device_name}</h5><h5 class="m-0 mt-1 text-secondary">编号：${device.device_sn}</h5>')
                     ->width(180),
-
-                amis()->TableColumn('user.user_type', '类型')
-                    ->searchable(
-                        amis()->SelectControl('user_type')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
-                    )
-                    ->set('type', 'input-tag')
-                    ->set('options', Enum::user_type(false))
-                    ->set('multiple', true)
-                    ->set('static', true),
 
                 amis()->TableColumn('sort', '优先级')
                     ->sortable()
