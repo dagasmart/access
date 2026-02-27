@@ -7,6 +7,7 @@ use DagaSmart\Access\Services\AccessDispatchService;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\BizAdmin\Renderers\Panel;
+use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
 
 
 /**
@@ -199,7 +200,12 @@ class AccessDispatchController extends AdminController
                     ->sortable()
                     ->width(100),
 
-                $this->rowActions('drawer')->fixed('right')
+                //$this->rowActions('drawer')->fixed('right'),
+                $this->rowActions([
+                    $this->rowShowButton('drawer'),
+                    $this->rowPublishButton('下发'),
+                    $this->rowDeleteButton(),
+                ])->fixed('right'),
             ]);
 
         return $this->baseList($crud);
@@ -308,18 +314,34 @@ class AccessDispatchController extends AdminController
      */
     public function detail()
     {
-        return $this->baseDetail()->body([
-            amis()->TextControl('id', 'ID')->static(),
-            amis()->TextControl('title', '标题')->static(),
-            amis()->TextControl('category_code', '分类')->static(),
-            amis()->TextControl('scene', '场景')->static(),
-            amis()->TextareaControl('content', '内容')->static(),
-            amis()->TextareaControl('metadata', '扩展信息')->static(),
-            amis()->TextControl('priority', '优先级')->static(),
-            amis()->TextControl('status', '状态')->static(),
-            amis()->TextControl('created_at', '创建时间')->static(),
-            amis()->TextControl('updated_at', '更新时间')->static(),
-        ]);
+        return $this->baseForm()->body([
+            amis()->StaticExactControl('enterprise_name', module_enterprise_alias())->value('${device.rel.enterprise.enterprise_name}'),
+            amis()->StaticExactControl('facility_name', '设施主体')->value('${device.rel.facility.level_name}'),
+            amis()->StaticExactControl('device_brand', '设备品牌')->value('${device.device_brand}'),
+            amis()->StaticExactControl('device_name', '设备名称')->value('${device.device_name}'),
+            amis()->StaticExactControl('device_sn', '设备编号')->value('${device.device_sn}')->copyable(),
+            amis()->TagControl('user_type', '用户类型')
+                ->options(Enum::user_type(false))
+                ->value('${user.user_type}')
+                ->static(),
+            amis()->TreeSelectControl('grade_id', '年级')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade'))
+                ->disabledOn('${!enterprise_id}')
+                ->searchable()
+                ->onlyLeaf()
+                ->required()
+                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!enterprise_id}'),
+            amis()->SelectControl('classes_id', '班级')
+                ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                ->disabledOn('${!grade_id}')
+                ->searchable()
+                ->required()
+                ->visible()
+                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!grade_id}'),
+            amis()->StaticExactControl('user.user_name', '用户姓名'),
+            amis()->StaticExactControl('user.id_card','身份证号')->copyable(),
+        ])
+        ->static();
     }
 
     /**
@@ -338,6 +360,42 @@ class AccessDispatchController extends AdminController
             $data['metadata_remark']     = $meta['remark'] ?? '';
         }
         return $data;
+    }
+
+    /**
+     * 下发按钮
+     * @param string $title
+     * @return mixed
+     */
+    protected function rowPublishButton(string $title = ''): mixed
+    {
+        $dialog_title = $title . '至设备';
+        $action = amis()->DialogAction()->dialog(
+            amis()->Dialog()
+                ->title($dialog_title)
+                ->body([
+                    amis()->Form()
+                        ->wrapWithPanel(false)
+                        ->api('put:/biz/access/dispatch/user/${id}/face/publish')
+                        ->body([
+                            amis()->HiddenControl('id'),
+                            amis()->Page()->body('是否将 <b class="text-danger">${user.user_name}</b> 立即下发至设备 <b class="text-danger">${device.device_sn}</b> ?'),
+                        ]),
+                ])
+                ->actions([
+                    amis()->Button()->label('否，我再想想')->actionType('close'),
+                    amis()->Button()->label('是，立即下发')->actionType('confirm')->primary()
+                ])
+                ->size('xs')
+        );
+        $action->label($title)->level('warning')->icon('download')->visible(admin_user()->administrator());
+        return AdminPipeline::handle(AdminPipeline::PIPE_EDIT_ACTION, $action);
+    }
+
+    public function userFacePublish()
+    {
+        $this->service->userFacePublish();
+        return $this->response()->success(true, '下发成功');
     }
 
     /**

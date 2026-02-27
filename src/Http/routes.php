@@ -25,6 +25,8 @@ Route::group([
 
     $router->get('access/enterprise/{enterprise_id}/permission/all', [Controllers\AccessPermissionController::class, 'permissionAll']);
     $router->get('access/enterprise/{enterprise_id}/permission/{id}/code', [Controllers\AccessPermissionController::class, 'permissionCode']);
+    //下发用户人脸
+    $router->put('access/dispatch/user/{id}/face/publish', [Controllers\AccessDispatchController::class, 'userFacePublish']);
 
     $router->resource('access/permission', Controllers\AccessPermissionController::class);
     $router->resource('access/dispatch', Controllers\AccessDispatchController::class);

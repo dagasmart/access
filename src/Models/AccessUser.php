@@ -22,6 +22,18 @@ class AccessUser extends Model
 
     public $timestamps = true;
 
+    public function getIdCardAttribute($value): string
+    {
+        return admin_sensitive($value, 6, 8);
+    }
+
+    public function setIdCardAttribute($value): void
+    {
+        if ($value && !strpos($value, '*')) {
+            $this->attributes['id_card'] = $value;
+        }
+    }
+
     public function getUserAvatarAttribute($value): ?string
     {
         return admin_image_url($value);
