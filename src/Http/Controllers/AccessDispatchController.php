@@ -98,10 +98,12 @@ class AccessDispatchController extends AdminController
             ->autoFillHeight(true)
             ->columns([
                 amis()->TableColumn('user_card', '用户/身份证号')
-                    ->searchable(amis()->FormControl()->body([
-                        amis()->TextControl('user_name', '用户名')->placeholder('请输入查找的用户名')->clearable(),
-                        amis()->TextControl('id_card', '身份证号')->placeholder('请输入查找的身份证号或后四位')->clearable(),
-                    ]))
+                    ->searchable(
+                        amis()->FormControl()->body([
+                            amis()->TextControl('user_name', '用户名')->placeholder('请输入查找的用户名')->clearable(),
+                            amis()->TextControl('id_card', '身份证号')->placeholder('请输入查找的身份证号或后四位')->clearable(),
+                        ])
+                    )
                     ->set('type', 'tpl')
                     ->set('tpl', '${user.user_name}<h5 class="m-0 mt-1.5 text-secondary">${user.id_card}</h5>')
                     ->align('center')
