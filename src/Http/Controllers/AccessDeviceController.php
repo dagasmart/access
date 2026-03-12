@@ -31,6 +31,8 @@ class AccessDeviceController extends AdminController
             ->columnsTogglable()
             ->footable(['expand' => 'first'])
             ->autoFillHeight(true)
+            ->interval(10000)
+            ->silentPolling()
             ->columns([
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
