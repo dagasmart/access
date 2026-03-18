@@ -203,6 +203,27 @@ class AccessUserController extends AdminController
                                 ])
                                 ->crop([
                                     'aspectRatio' => '0.81',
+                                ])
+                                ->onEvent([
+                                    'remove' => [
+                                        'actions' => [
+                                            [
+                                                'actionType' => 'ajax',
+                                                'type' => 'delete',
+                                                'api' =>[
+                                                    'url' => $this->removeFile(),
+                                                    'method' => 'post',
+                                                    'data' => [
+                                                        'file' => '${event.data.value}'
+                                                    ],
+                                                    'messages' => [
+                                                        'success' => '文件已清除',
+                                                        'fail' => '清除失败'
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                    ]
                                 ]),
                         ]),
                     ]),
