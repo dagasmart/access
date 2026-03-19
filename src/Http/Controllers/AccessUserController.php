@@ -211,7 +211,7 @@ class AccessUserController extends AdminController
                                                 'actionType' => 'ajax',
                                                 'type' => 'delete',
                                                 'api' =>[
-                                                    'url' => $this->removeFile(),
+                                                    'url' => $this->remove(),
                                                     'method' => 'post',
                                                     'data' => [
                                                         'file' => '${event.data.value}'
