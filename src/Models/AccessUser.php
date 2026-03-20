@@ -36,12 +36,12 @@ class AccessUser extends Model
 
     public function getUserAvatarAttribute($value): ?string
     {
-        return admin_image_url($value, 800);
+        return admin_image_url($value);
     }
 
     public function setUserAvatarAttribute($value): void
     {
-        $this->attributes['user_avatar'] = admin_image_path($value, 800);
+        $this->attributes['user_avatar'] = admin_image_path($value);
     }
 
     public function student(): hasOne
