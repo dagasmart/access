@@ -151,13 +151,18 @@ class AccessUserService extends AdminService
         $classes_id = request('classes_id');
         $user_type = request('user_type');
         if ($user_type == 'student') {
+            $is_boarder = request('is_boarder');
+
             return $this->query()
-                ->whereHas('student', function ($query) use ($enterprise_id, $grade_id, $classes_id) {
+                ->whereHas('student', function ($query) use ($enterprise_id, $grade_id, $classes_id, $is_boarder) {
                     $query
                         ->where('enterprise_id', $enterprise_id)
                         ->where('grade_id', $grade_id)
                         ->when($classes_id, function ($query) use ($classes_id) {
                             $query->where('classes_id', $classes_id);
+                        })
+                        ->when(!is_null($is_boarder), function ($query) use ($is_boarder) {
+                            $query->where('is_boarder', $is_boarder);
                         });
                 })
                 ->with('student')

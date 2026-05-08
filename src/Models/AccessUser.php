@@ -5,15 +5,14 @@ namespace DagaSmart\Access\Models;
 use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
 use DagaSmart\Organization\Models\Worker;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * 门禁-用户表
  */
 class AccessUser extends Model
 {
+    protected $table = 'biz_access_user';
 
-	protected $table = 'biz_access_user';
     protected $primaryKey = 'id';
 
     protected $casts = [
@@ -29,7 +28,7 @@ class AccessUser extends Model
 
     public function setIdCardAttribute($value): void
     {
-        if ($value && !strpos($value, '*')) {
+        if ($value && ! strpos($value, '*')) {
             $this->attributes['id_card'] = $value;
         }
     }
@@ -44,12 +43,12 @@ class AccessUser extends Model
         $this->attributes['user_avatar'] = admin_image_path($value);
     }
 
-    public function student(): hasOne
+    public function student(): HasOne
     {
         return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id');
     }
 
-    public function rel(): hasOne
+    public function rel(): HasOne
     {
         if ($this->user_type == 'worker') {
             return $this->hasOne(Worker::class, 'id', 'worker_id');
@@ -57,7 +56,4 @@ class AccessUser extends Model
             return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
         }
     }
-
-
-
 }

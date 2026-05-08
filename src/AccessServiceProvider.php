@@ -1,18 +1,19 @@
 <?php
+
 declare(strict_types=1);
+
 namespace DagaSmart\Access;
 
-use Exception;
+use DagaSmart\BizAdmin\Extend\ServiceProvider;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\TextControl;
-use DagaSmart\BizAdmin\Extend\ServiceProvider;
-
+use Exception;
 
 class AccessServiceProvider extends ServiceProvider
 {
-	protected $menu = [
+    protected $menu = [
         [
-            'parent' => NULL,
+            'parent' => null,
             'title' => '门禁管家',
             'url' => '/biz/access',
             'url_type' => 1,
@@ -59,11 +60,10 @@ class AccessServiceProvider extends ServiceProvider
             'url' => '/biz/access/stat',
             'url_type' => 1,
             'icon' => 'mynaui:chart-bar',
-        ]
+        ],
     ];
 
     /**
-     * @return void
      * @throws Exception
      */
     public function register(): void
@@ -79,10 +79,10 @@ class AccessServiceProvider extends ServiceProvider
 
     }
 
-	public function settingForm(): ?Form
-	{
-	    return $this->baseSettingForm()->body([
+    public function settingForm(): ?Form
+    {
+        return $this->baseSettingForm()->body([
             TextControl::make()->name('value')->label('Value')->required(),
-	    ]);
-	}
+        ]);
+    }
 }

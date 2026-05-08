@@ -280,8 +280,13 @@ class AccessDispatchController extends AdminController
                 ->required()
                 ->visible(!$isEdit)
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!grade_id}'),
+            amis()->CheckboxesControl('is_boarder', '类别')
+                ->options(Enum::board_type())
+                ->value('0,1')
+                ->visible(!$isEdit)
+                ->visibleOn('${(user_type === "student") && !!classes_id}'),
             amis()->SelectControl('access_user_id', '用户')
-                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/all'))
+                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||0,1}/all'))
                 ->disabledOn('${!classes_id}')
 //                ->selectMode('table')
 //                ->columns([

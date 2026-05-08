@@ -62,9 +62,9 @@ class AccessPermissionService extends AdminService
         $data['allow_date'] = $data['allow_date'] ?? null;
         $data['exclude_date'] = $data['exclude_date'] ?? null;
         $body = [];
-        $body['dt_slots'] = $this->arrayToJson(['enable' => $data['is_exclude'], 'data' => $data['exclude_date'], 'key' => 'dt_slot']);
-        $body['spt_slots'] = $this->arrayToJson(['enable' => $data['is_allow'], 'data' => $data['allow_date'], 'key' => 'ust_slot']);
-        $week = $this->arrayToJson(['data' => $data['permission_combo']]);
+        $body['dt_slots'] = $this->arrayToJson(['enable' => boolval($data['exclude_date']), 'data' => $data['exclude_date'], 'key' => 'dt_slot']);
+        $body['spt_slots'] = $this->arrayToJson(['enable' => boolval(['allow_date']), 'data' => $data['allow_date'], 'key' => 'ust_slot']);
+        $week = $this->arrayToJson(['data' => $data['permission_combo'] ?? null]);
         array_walk($week, function($item, $key) use(&$body) {
             $body[$key] = $item;
         });
