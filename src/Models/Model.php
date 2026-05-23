@@ -23,7 +23,6 @@ class Model extends BaseModel
 
     protected static function booted(): void
     {
-        static::addGlobalScope(new ActiveScope(self::schema));
         parent::booted();
     }
 
