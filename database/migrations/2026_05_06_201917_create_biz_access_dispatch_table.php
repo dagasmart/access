@@ -3,20 +3,24 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    protected $connection = 'school';
+    private string $name = 'biz_access_dispatch';
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::connection('school')->create('biz_access_dispatch', function (Blueprint $table) {
+        !Schema::hasTable($this->name)
+        && Schema::create($this->name, function (Blueprint $table) {
             $table->comment('数智校园-门禁数据分发表');
             $table->bigIncrements('id');
-            $table->integer('access_user_id')->nullable()->index('biz_access_dispatch_user_id_idx')->comment('门禁用户id');
-            $table->integer('access_device_id')->nullable()->index('biz_access_dispatch_device_id_idx')->comment('门禁设备id');
-            $table->integer('access_permission_id')->nullable()->index('biz_access_dispatch_permission_id_idx')->comment('门禁权限id');
+            $table->integer('access_user_id')->nullable()->index()->comment('门禁用户id');
+            $table->integer('access_device_id')->nullable()->index()->comment('门禁设备id');
+            $table->integer('access_permission_id')->nullable()->index()->comment('门禁权限id');
             $table->integer('enterprise3_id')->nullable()->comment('门禁权限码');
             $table->string('auth_model', 16)->nullable()->default('days')->comment('授权类型:每天days、工作日workdays、自定义日期custom');
             $table->text('auth_date')->nullable()->comment('授权日期');
@@ -39,6 +43,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::connection('school')->dropIfExists('biz_access_dispatch');
+        if (Schema::hasTable($this->name)) {
+            //检查是否存在数据
+            $exists = DB::table($this->name)->exists();
+            //不存在数据时，删除表
+            if (!$exists) {
+                //删除 reverse
+                Schema::dropIfExists($this->name);
+            }
+        }
     }
 };
