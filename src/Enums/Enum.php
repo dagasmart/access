@@ -6,7 +6,6 @@ use DagaSmart\BizAdmin\Enums\Enum as Enums;
 
 enum Enum
 {
-
     /**
      * 权限码
      */
@@ -17,10 +16,11 @@ enum Enum
         ['value' => 3, 'label' => '三级'],
         ['value' => 4, 'label' => '四级'],
         ['value' => 5, 'label' => '五级'],
-        ];
+    ];
 
     /**
      * 开锁模式
+     *
      * @return array|array[]
      */
     public static function open_type(): array
@@ -34,6 +34,7 @@ enum Enum
 
     /**
      * 用户类型
+     *
      * @return array|array[]
      */
     public static function user_type($disabled = true): array
@@ -47,19 +48,20 @@ enum Enum
             $data[] = ['value' => 'worker', 'label' => '员工', 'color' => 'success', 'disabled' => $disabled];
         }
         $data[] = ['value' => 'visitor', 'label' => '访客', 'color' => 'default'];
+
         return $data;
     }
 
-
     /**
      * 住校类型
+     *
      * @return array|array[]
      */
     public static function board_type(): array
     {
         return [
             ['value' => 0, 'label' => '住校生'],
-            ['value' => 1, 'label' => '走读生']
+            ['value' => 1, 'label' => '走读生'],
         ];
     }
 
@@ -79,7 +81,6 @@ enum Enum
 
     /**
      * 性别
-     * @return array
      */
     public static function sex(): array
     {
@@ -88,12 +89,11 @@ enum Enum
 
     /**
      * 星期列表
-     * @param int|null $type 1取星期值0123456，2取星期值1234567
-     * @return array
+     *
+     * @param  int|null  $type  1取星期值0123456，2取星期值1234567
      */
     public static function weeks(?int $type = null): array
     {
         return Enums::weeks($type);
     }
-
 }
