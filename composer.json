@@ -1,6 +1,6 @@
 {
     "name": "dagasmart/access",
-    "alias": "门禁管理",
+    "alias": "门禁管家",
     "description": "出入口门禁安全管理是新型现代化安全管理系统",
     "type": "library",
     "version": "1.0.0",
