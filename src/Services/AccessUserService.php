@@ -102,17 +102,17 @@ class AccessUserService extends AdminService
         parent::saved($model, $isEdit);
         $request = request()->all();
         if ($model->id && !empty($request['enterprise_id']) && !empty($request['facility_id'])) {
-        $data = [
-            'enterprise_id' => $request['enterprise_id'],
-            'facility_id' => $request['facility_id'],
-            'device_id' => $model->id,
-        ];
-        admin_transaction(function () use ($data) {
-            if ($data['device_id']) {
-                EnterpriseFacilityDevice::query()->where($data)->delete();
-            }
-            EnterpriseFacilityDevice::query()->insert($data);
-        });
+            $data = [
+                'enterprise_id' => $request['enterprise_id'],
+                'facility_id' => $request['facility_id'],
+                'device_id' => $model->id,
+            ];
+            admin_transaction(function () use ($data) {
+                if ($data['device_id']) {
+                    EnterpriseFacilityDevice::query()->where($data)->delete();
+                }
+                EnterpriseFacilityDevice::query()->insert($data);
+            });
         }
     }
 
