@@ -8,7 +8,6 @@ use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
 use DagaSmart\Organization\Services\EnterpriseService;
 use Illuminate\Database\Eloquent\Builder;
 
-
 /**
  * 门禁-设备服务类
  *
@@ -17,7 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class AccessPermissionService extends AdminService
 {
-	protected string $modelName = AccessPermission::class;
+    protected string $modelName = AccessPermission::class;
 
     public function loadRelations($query): void
     {
@@ -43,7 +42,7 @@ class AccessPermissionService extends AdminService
     public function searchable($query): void
     {
         parent::searchable($query);
-        //$query->where(['device_type' => 'access']); //只查门禁设备
+        // $query->where(['device_type' => 'access']); //只查门禁设备
     }
 
     /**
@@ -51,21 +50,21 @@ class AccessPermissionService extends AdminService
      */
     public function saving(&$data, $primaryKey = ''): void
     {
-//        $time = date('H:i');
-//        $sec = toSeconds($time);
-//        dump($sec);
-//        dump(timeToSeconds($time));
-//        dump(secondToTime($sec));
-//        die;
-//        dump($data);
-//        dump($primaryKey);
+        //        $time = date('H:i');
+        //        $sec = toSeconds($time);
+        //        dump($sec);
+        //        dump(timeToSeconds($time));
+        //        dump(secondToTime($sec));
+        //        die;
+        //        dump($data);
+        //        dump($primaryKey);
         $data['allow_date'] = $data['allow_date'] ?? null;
         $data['exclude_date'] = $data['exclude_date'] ?? null;
         $body = [];
         $body['dt_slots'] = $this->arrayToJson(['enable' => boolval($data['exclude_date']), 'data' => $data['exclude_date'], 'key' => 'dt_slot']);
         $body['spt_slots'] = $this->arrayToJson(['enable' => boolval(['allow_date']), 'data' => $data['allow_date'], 'key' => 'ust_slot']);
         $week = $this->arrayToJson(['data' => $data['permission_combo'] ?? null]);
-        array_walk($week, function($item, $key) use(&$body) {
+        array_walk($week, function ($item, $key) use (&$body) {
             $body[$key] = $item;
         });
         $data['body'] = $body;
@@ -73,25 +72,24 @@ class AccessPermissionService extends AdminService
 
     /**
      * 新增或修改后更新关联数据
-     * @param $model
-     * @param bool $isEdit
-     * @return void
+     *
+     * @param  bool  $isEdit
      */
     public function saved($model, $isEdit = false): void
     {
         parent::saved($model, $isEdit);
-//        $request = request()->all();
-//        $data = [
-//            'enterprise_id' => $request['enterprise_id'],
-//            'facility_id' => $request['facility_id'],
-//            'device_id' => $model->id,
-//        ];
-//        admin_transaction(function () use ($data) {
-//            if ($data['device_id']) {
-//                EnterpriseFacilityDevice::query()->where($data)->delete();
-//            }
-//            EnterpriseFacilityDevice::query()->insert($data);
-//        });
+        //        $request = request()->all();
+        //        $data = [
+        //            'enterprise_id' => $request['enterprise_id'],
+        //            'facility_id' => $request['facility_id'],
+        //            'device_id' => $model->id,
+        //        ];
+        //        admin_transaction(function () use ($data) {
+        //            if ($data['device_id']) {
+        //                EnterpriseFacilityDevice::query()->where($data)->delete();
+        //            }
+        //            EnterpriseFacilityDevice::query()->insert($data);
+        //        });
     }
 
     /**
@@ -107,7 +105,6 @@ class AccessPermissionService extends AdminService
 
     /**
      * 权限码
-     * @return array
      */
     public function permissionCode(): array
     {
@@ -124,16 +121,18 @@ class AccessPermissionService extends AdminService
                 ->toArray();
             array_walk($data, function (&$item) use ($pluck) {
                 if ($pluck) {
-                $item['hidden'] = in_array($item['value'], $pluck);
+                    $item['hidden'] = in_array($item['value'], $pluck);
                 }
             });
         }
+
         return $data;
     }
 
     public function permissionAll(): array
     {
         $enterprise_id = $this->request->enterprise_id ?? null;
+
         return $this->query()
             ->where('enterprise_id', $enterprise_id)
             ->orderBy('permission_code')
@@ -145,8 +144,6 @@ class AccessPermissionService extends AdminService
 
     /**
      * 时间转换json
-     * @param array $rows
-     * @return array|null
      */
     public function arrayToJson(array $rows = []): ?array
     {
@@ -159,7 +156,7 @@ class AccessPermissionService extends AdminService
                 $data[$key] = [];
             }
 
-            if (!is_null($enable)) {
+            if (! is_null($enable)) {
                 $data['enable'] = $enable;
             }
 
@@ -168,34 +165,34 @@ class AccessPermissionService extends AdminService
                 $end = $item['end'] ?? null;
                 if ($begin && $end) {
                     $timestamp = $item['date'] ?? null;
-                    if (!isTimestamp($timestamp)) {
+                    if (! isTimestamp($timestamp)) {
                         $timestamp = strtotime($timestamp);
                     }
                     if ($timestamp) {
-                        if ($key == 'dt_slot') { //禁止通行
+                        if ($key == 'dt_slot') { // 禁止通行
                             $data[$key][] = [
                                 's_day' => $timestamp + timeToSeconds($begin),
                                 'e_day' => $timestamp + timeToSeconds($end),
-                                //'s_day' => $timestamp + timeToSeconds($begin),
-                                //'e_day' => $timestamp + timeToSeconds($end),
+                                // 's_day' => $timestamp + timeToSeconds($begin),
+                                // 'e_day' => $timestamp + timeToSeconds($end),
                             ];
                         }
-                        if ($key == 'ust_slot') { //允许通行
+                        if ($key == 'ust_slot') { // 允许通行
                             $data[$key][] = [
                                 's_sec' => timeToSeconds($begin),
                                 'e_sec' => timeToSeconds($end),
-                                //'s_sec' => timeToSeconds($begin),
-                                //'e_sec' => timeToSeconds($end),
+                                // 's_sec' => timeToSeconds($begin),
+                                // 'e_sec' => timeToSeconds($end),
                             ];
                         }
                     } else {
-                        if ($key == 'dt_slot') { //禁止通行
+                        if ($key == 'dt_slot') { // 禁止通行
                             $data[$key][] = [
                                 's_day' => date('Ymd', $begin),
                                 'e_day' => date('Ymd', $end),
                             ];
                         }
-                        if ($key == 'ust_slot') { //允许通行
+                        if ($key == 'ust_slot') { // 允许通行
                             $data[$key][] = [
                                 's_sec' => $begin,
                                 'e_sec' => $end,
@@ -223,29 +220,29 @@ class AccessPermissionService extends AdminService
                 }
             }
         }
+
         return $data;
     }
 
     /**
      * 递归选择项
-     * @return array
      */
     public function options(): array
     {
         $id = request()->id;
         $enterprise_id = request()->enterprise_id;
         $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b','a.id','=','b.facility_id')
+            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function($query) use ($enterprise_id) {
+            ->when($enterprise_id, function ($query) use ($enterprise_id) {
                 $query->where('b.enterprise_id', $enterprise_id);
             })
-            ->when($id, function($query) use ($id) {
+            ->when($id, function ($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);
             })
             ->get()
             ->toArray();
+
         return array2tree($data);
     }
-
 }

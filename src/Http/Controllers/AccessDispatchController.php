@@ -11,7 +11,6 @@ use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 /**
  * 基础-分发类
  *
@@ -46,7 +45,7 @@ class AccessDispatchController extends AdminController
             amis()->Flex()->items([
                 $this->tree(),
                 $this->list(),
-                //$this->chart(),
+                // $this->chart(),
             ])
         );
     }
@@ -111,12 +110,12 @@ class AccessDispatchController extends AdminController
                     ->align('center')
                     ->width(100),
 
-                amis()->TableColumn('user.user_avatar','照片')
+                amis()->TableColumn('user.user_avatar', '照片')
                     ->set('type', 'avatar')
                     ->set('src', '${user.user_avatar}')
                     ->set('size', 60)
                     ->set('static', true)
-                    ->set('onError','return true;')
+                    ->set('onError', 'return true;')
                     ->set('onEvent', [
                         'click' => [
                             'actions' => [
@@ -125,20 +124,20 @@ class AccessDispatchController extends AdminController
                                     'drawer' => [
                                         'title' => false,
                                         'actions' => [],
-                                        'closeOnEsc' => true, //esc键关闭
-                                        'closeOnOutside' => true, //域外可关闭
-                                        'showCloseButton' => false, //显示关闭
+                                        'closeOnEsc' => true, // esc键关闭
+                                        'closeOnOutside' => true, // 域外可关闭
+                                        'showCloseButton' => false, // 显示关闭
                                         'body' => [
                                             amis()->Image()
                                                 ->src('${user.user_avatar}')
                                                 ->defaultImage(url(admin_config('admin.default_image')))
                                                 ->width('100%')
                                                 ->height('100%'),
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
                     ]),
 
                 amis()->TableColumn('user.user_type', '类型')
@@ -204,7 +203,7 @@ class AccessDispatchController extends AdminController
                     ->sortable()
                     ->width(100),
 
-                //$this->rowActions('drawer')->fixed('right'),
+                // $this->rowActions('drawer')->fixed('right'),
                 $this->rowActions([
                     $this->rowShowButton('drawer'),
                     $this->rowPublishButton('下发'),
@@ -270,20 +269,20 @@ class AccessDispatchController extends AdminController
                 ->disabledOn('${!enterprise_id}')
                 ->searchable()
                 ->onlyLeaf()
-                ->required(!$isEdit)
-                //->visible(!$isEdit)
+                ->required(! $isEdit)
+                // ->visible(!$isEdit)
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!enterprise_id}'),
             amis()->SelectControl('classes_id', '班级')
                 ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
                 ->disabledOn('${!grade_id}')
                 ->searchable()
                 ->required()
-                ->visible(!$isEdit)
+                ->visible(! $isEdit)
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!grade_id}'),
             amis()->CheckboxesControl('is_boarder', '类别')
                 ->options(Enum::board_type())
                 ->value('0,1')
-                ->visible(!$isEdit)
+                ->visible(! $isEdit)
                 ->visibleOn('${(user_type === "student") && !!classes_id}'),
             amis()->SelectControl('access_user_id', '用户')
                 ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||0,1}/all'))
@@ -300,10 +299,10 @@ class AccessDispatchController extends AdminController
                 ->checkAll()
                 ->multiple()
                 ->required()
-                ->visible(!$isEdit)
+                ->visible(! $isEdit)
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!classes_id}'),
             amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
-            amis()->StaticExactControl('user.id_card','身份证号')->visible($isEdit),
+            amis()->StaticExactControl('user.id_card', '身份证号')->visible($isEdit),
         ]);
     }
 
@@ -315,6 +314,7 @@ class AccessDispatchController extends AdminController
         $this->isEdit = true;
         $data = $this->service->getEditData($id)->toArray();
         $data = $this->decodeMetadata($data);
+
         return $this->response()->success($data);
     }
 
@@ -348,19 +348,17 @@ class AccessDispatchController extends AdminController
                 ->visible()
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!grade_id}'),
             amis()->StaticExactControl('user.user_name', '用户姓名'),
-            amis()->StaticExactControl('user.id_card','身份证号')->copyable(),
+            amis()->StaticExactControl('user.id_card', '身份证号')->copyable(),
         ])
-        ->static();
+            ->static();
     }
 
     /**
      * 下发按钮
-     * @param string $title
-     * @return mixed
      */
     protected function rowPublishButton(string $title = ''): mixed
     {
-        $dialog_title = $title . '至设备';
+        $dialog_title = $title.'至设备';
         $action = amis()->DialogAction()->dialog(
             amis()->Dialog()
                 ->title($dialog_title)
@@ -375,70 +373,71 @@ class AccessDispatchController extends AdminController
                 ])
                 ->actions([
                     amis()->Button()->label('否，我再想想')->actionType('close'),
-                    amis()->Button()->label('是，立即下发')->actionType('confirm')->primary()
+                    amis()->Button()->label('是，立即下发')->actionType('confirm')->primary(),
                 ])
                 ->size('xs')
         );
         $action->label($title)->level('warning')->icon('download')->visible(admin_user()->administrator());
+
         return AdminPipeline::handle(AdminPipeline::PIPE_EDIT_ACTION, $action);
     }
 
     /**
      * 下发推送
+     *
      * @return JsonResponse|JsonResource
      */
     public function userFacePublish()
     {
         $this->service->userFacePublish();
+
         return $this->response()->success(true, '下发成功');
     }
-
 
     public function barChart(): Panel
     {
         return amis()->Panel()->className('w-full')->body([
             amis()->Chart()->height(250)->config([
                 'backgroundColor' => '',
-                'title'           => [
+                'title' => [
                     'text' => '任务汇总统计',
-                    'subtext' => '统计图'
+                    'subtext' => '统计图',
                 ],
-                'tooltip'         => ['trigger' => 'axis'],
-                'legend'          => ['data' => ['最高气温', '最低气温']],
-                'xAxis'           => [
-                    'type'        => 'category',
+                'tooltip' => ['trigger' => 'axis'],
+                'legend' => ['data' => ['最高气温', '最低气温']],
+                'xAxis' => [
+                    'type' => 'category',
                     'boundaryGap' => false,
-                    'data'        => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    'data' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 ],
-                'yAxis'           => ['type' => 'value'],
-                'grid'            => ['left' => '7%', 'right' => '3%', 'top' => 60, 'bottom' => 30,],
-                'legend'          => ['data' => ['成功', '失败']],
-                'series'          => [
+                'yAxis' => ['type' => 'value'],
+                'grid' => ['left' => '7%', 'right' => '3%', 'top' => 60, 'bottom' => 30],
+                'legend' => ['data' => ['成功', '失败']],
+                'series' => [
                     [
-                        'name'      => '成功',
-                        'data'      => [10,2,30,4,50,16,7],
-                        'type'      => 'line',
+                        'name' => '成功',
+                        'data' => [10, 2, 30, 4, 50, 16, 7],
+                        'type' => 'line',
                         'areaStyle' => [],
-                        'smooth'    => true,
-                        'symbol'    => 'none',
+                        'smooth' => true,
+                        'symbol' => 'none',
                     ],
                     [
-                        'name'      => '失败',
-                        'data'      => [7,6,5,4,3,2,1],
-                        'type'      => 'bar',
+                        'name' => '失败',
+                        'data' => [7, 6, 5, 4, 3, 2, 1],
+                        'type' => 'bar',
                         'areaStyle' => [],
-                        'smooth'    => true,
-                        'symbol'    => 'none',
+                        'smooth' => true,
+                        'symbol' => 'none',
                     ],
                 ],
-            ])
+            ]),
         ])->id('pie-chart-panel')->set('animations', [
             'enter' => [
-                'delay'    => 0.1,
+                'delay' => 0.1,
                 'duration' => 0.5,
-                'type'     => 'zoomIn',
+                'type' => 'zoomIn',
             ],
         ]);
     }
-
 }

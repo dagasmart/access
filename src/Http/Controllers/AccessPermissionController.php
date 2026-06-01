@@ -2,8 +2,8 @@
 
 namespace DagaSmart\Access\Http\Controllers;
 
-use DagaSmart\BizAdmin\Controllers\AdminController;
 use DagaSmart\Access\Services\AccessPermissionService;
+use DagaSmart\BizAdmin\Controllers\AdminController;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 
@@ -17,7 +17,7 @@ class AccessPermissionController extends AdminController
             ->filterTogglable(false)
             ->headerToolbar([
                 $this->createButton(true),
-                ...$this->baseHeaderToolBar()
+                ...$this->baseHeaderToolBar(),
             ])
             ->autoGenerateFilter()
             ->affixHeader()
@@ -38,15 +38,15 @@ class AccessPermissionController extends AdminController
                     ->set('type', 'select')
                     ->set('options', $this->service->getEnterpriseAll())
                     ->set('static', true)
-                    ->set('fixed','left')
+                    ->set('fixed', 'left')
                     ->width(200),
-                amis()->TableColumn('permission_name','权限名')
+                amis()->TableColumn('permission_name', '权限名')
                     ->searchable([
                         'name' => 'permission_name',
                         'type' => 'input-text',
                     ])
-                    ->set('fixed','left'),
-                amis()->TableColumn('permission_code','权限码')
+                    ->set('fixed', 'left'),
+                amis()->TableColumn('permission_code', '权限码')
                     ->set('type', 'input-tag')
                     ->set('options', $this->service->permissionCode())
                     ->set('static', true),
@@ -54,11 +54,11 @@ class AccessPermissionController extends AdminController
                     ->set('type', 'page')
                     ->set('body', [
                         amis()->GroupControl()->mode('inline')->body([
-//                            amis()->TagControl('combo','${combo ? "星期" : null}')
-//                                ->mode('horizontal')
-//                                ->options($this->service->arrayWeeks())
-//                                ->static(),
-//                            amis()->Button()->label('明细')->level('link')->onEvent(),
+                            //                            amis()->TagControl('combo','${combo ? "星期" : null}')
+                            //                                ->mode('horizontal')
+                            //                                ->options($this->service->arrayWeeks())
+                            //                                ->static(),
+                            //                            amis()->Button()->label('明细')->level('link')->onEvent(),
                             amis()->Tag()->label('${combo ? "星期" + combo : null}')->className('text-ellipsis'),
                             amis()->Button()->label('明细')->level('link')->size('xs')->onEvent([
                                 'click' => [
@@ -74,7 +74,7 @@ class AccessPermissionController extends AdminController
                                                 'body' => [
                                                     amis()->ComboControl('permission_combo', false)
                                                         ->items([
-                                                            //amis()->Tag()->label('星期${index+1}'),
+                                                            // amis()->Tag()->label('星期${index+1}'),
                                                             amis()->SubFormControl('week${index+1}', '星期${["日","一","二","三","四","五","六","日"][index+1]}')
                                                                 ->multiple()
                                                                 ->btnLabel('${begin}-${end}')
@@ -84,12 +84,12 @@ class AccessPermissionController extends AdminController
                                                                 ->form([
                                                                     'title' => '时间范围',
                                                                     'body' => [
-                                                                        //amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
-                                                                        amis()->TimeControl('begin','开始时间')
+                                                                        // amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
+                                                                        amis()->TimeControl('begin', '开始时间')
                                                                             ->valueFormat('HH:mm')
                                                                             ->clearable()
                                                                             ->static(),
-                                                                        amis()->TimeControl('end','结束时间')
+                                                                        amis()->TimeControl('end', '结束时间')
                                                                             ->valueFormat('HH:mm')
                                                                             ->timeConstraints([
                                                                                 'hours' => ['min' => 0, 'max' => 23],
@@ -110,21 +110,21 @@ class AccessPermissionController extends AdminController
                                                         ->multiple()
                                                         ->draggable()
                                                         ->static(),
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ]),
-                        ])
+                        ]),
                     ])
                     ->width(220),
-                amis()->TableColumn('exclude_date','指定日期禁止通行')
+                amis()->TableColumn('exclude_date', '指定日期禁止通行')
                     ->searchable([
                         'name' => 'is_exclude',
                         'type' => 'checkboxes',
                         'multiple' => true,
-                        'options' => $this->service->switchOption()
+                        'options' => $this->service->switchOption(),
                     ])
                     ->set('type', 'page')
                     ->set('body', [
@@ -149,16 +149,16 @@ class AccessPermissionController extends AdminController
                                                         ->static(false),
                                                     amis()->ComboControl('exclude_date', false)
                                                         ->items([
-                                                            //amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
-                                                            //amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                                                            // amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                                                            // amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
                                                             amis()->Button()->label('日期 ${index+1}')->level('link'),
-                                                            amis()->DateControl('begin','时间段')
-                                                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                                            amis()->DateControl('begin', '时间段')
+                                                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                                                 ->placeholder('请选择开始日期')
                                                                 ->minDate('${today()}')
                                                                 ->static(),
-                                                            amis()->DateControl('end',false)
-                                                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                                            amis()->DateControl('end', false)
+                                                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                                                 ->placeholder('请选择结束日期')
                                                                 ->minDate('${begin||today()}')
                                                                 ->static(),
@@ -168,21 +168,21 @@ class AccessPermissionController extends AdminController
                                                         ->draggable()
                                                         ->visibleOn('${!!is_exclude}')
                                                         ->static(),
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ]),
-                        ])
+                        ]),
                     ])
                     ->width(150),
-                amis()->TableColumn('allow_date','指定日期允许通行')
+                amis()->TableColumn('allow_date', '指定日期允许通行')
                     ->searchable([
                         'name' => 'is_allow',
                         'type' => 'checkboxes',
                         'multiple' => true,
-                        'options' => $this->service->switchOption()
+                        'options' => $this->service->switchOption(),
                     ])
                     ->set('type', 'page')
                     ->set('body', [
@@ -207,16 +207,16 @@ class AccessPermissionController extends AdminController
                                                         ->static(false),
                                                     amis()->ComboControl('allow_date', false)
                                                         ->items([
-                                                            //amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
-                                                            //amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                                                            // amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                                                            // amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
                                                             amis()->Button()->label('日期 ${index+1}')->level('link'),
                                                             amis()->DateControl('begin', '时间段')
-                                                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                                                 ->placeholder('请选择开始日期')
                                                                 ->minDate('${today()}')
                                                                 ->static(),
                                                             amis()->DateControl('end', false)
-                                                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                                                 ->placeholder('请选择结束日期')
                                                                 ->minDate('${begin||today()}')
                                                                 ->static(),
@@ -226,13 +226,13 @@ class AccessPermissionController extends AdminController
                                                         ->draggable()
                                                         ->visibleOn('${!!is_allow}')
                                                         ->static(),
-                                                ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ]),
-                        ])
+                        ]),
                     ])
                     ->width(150),
                 amis()->TableColumn('updated_at', '更新时间')
@@ -243,11 +243,11 @@ class AccessPermissionController extends AdminController
                         $this->rowShowButton(true),
                         $this->rowEditButton(true),
                         $this->rowDeleteButton(),
-                    ])
+                    ]),
                 ])
-                    ->set('align','center')
-                    ->set('fixed','right')
-                    ->set('width',150)
+                    ->set('align', 'center')
+                    ->set('fixed', 'right')
+                    ->set('width', 150),
             ]);
 
         return $this->baseList($crud);
@@ -282,7 +282,7 @@ class AccessPermissionController extends AdminController
                 amis()->Tab()->title('时间设定')->icon('menu')->body([
                     amis()->ComboControl('permission_combo', false)
                         ->items([
-                            //amis()->Tag()->label('星期${index+1}'),
+                            // amis()->Tag()->label('星期${index+1}'),
                             amis()->SubFormControl('week${index+1}', '星期${["日","一","二","三","四","五","六","日"][index+1]}')
                                 ->multiple()
                                 ->btnLabel('${begin}-${end}')
@@ -292,12 +292,12 @@ class AccessPermissionController extends AdminController
                                 ->form([
                                     'title' => '时间范围',
                                     'body' => [
-                                        //amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
-                                        amis()->TimeControl('begin','开始时间')
+                                        // amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
+                                        amis()->TimeControl('begin', '开始时间')
                                             ->valueFormat('HH:mm')
                                             ->clearable()
                                             ->required(),
-                                        amis()->TimeControl('end','结束时间')
+                                        amis()->TimeControl('end', '结束时间')
                                             ->valueFormat('HH:mm')
                                             ->timeConstraints([
                                                 'hours' => ['min' => 0, 'max' => 23],
@@ -306,7 +306,7 @@ class AccessPermissionController extends AdminController
                                             ->clearable()
                                             ->required(),
                                     ],
-                                    'size' => 'sm'
+                                    'size' => 'sm',
                                 ])
                                 ->required(),
                         ])
@@ -322,16 +322,16 @@ class AccessPermissionController extends AdminController
                         ->offText('否'),
                     amis()->ComboControl('exclude_date', false)
                         ->items([
-                            //amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
-                            //amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                            // amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                            // amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
                             amis()->Button()->label('禁止日期 ${index+1}')->level('link'),
                             amis()->DateControl('begin')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择开始日期')
                                 ->minDate('${today()}')
                                 ->required(),
                             amis()->DateControl('end')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择结束日期')
                                 ->minDate('${begin||today()}')
                                 ->required(),
@@ -347,16 +347,16 @@ class AccessPermissionController extends AdminController
                         ->offText('否'),
                     amis()->ComboControl('allow_date', false)
                         ->items([
-                            //amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
-                            //amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                            // amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                            // amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
                             amis()->Button()->label('允许日期 ${index+1}')->level('link'),
                             amis()->DateControl('begin')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择开始日期')
                                 ->minDate('${today()}')
                                 ->required(),
                             amis()->DateControl('end')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择结束日期')
                                 ->minDate('${begin||today()}')
                                 ->required(),
@@ -400,7 +400,7 @@ class AccessPermissionController extends AdminController
                 amis()->Tab()->title('时间设定')->icon('menu')->body([
                     amis()->ComboControl('permission_combo', false)
                         ->items([
-                            //amis()->Tag()->label('星期${index+1}'),
+                            // amis()->Tag()->label('星期${index+1}'),
                             amis()->SubFormControl('week${index+1}', '星期${["日","一","二","三","四","五","六","日"][index+1]}')
                                 ->multiple()
                                 ->btnLabel('${begin}-${end}')
@@ -410,12 +410,12 @@ class AccessPermissionController extends AdminController
                                 ->form([
                                     'title' => '时间范围',
                                     'body' => [
-                                        //amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
-                                        amis()->TimeControl('begin','开始时间')
+                                        // amis()->InputTimeRange()->name('begin')->label('选择时间')->extraName('end')->required(),
+                                        amis()->TimeControl('begin', '开始时间')
                                             ->valueFormat('HH:mm')
                                             ->clearable()
                                             ->required(),
-                                        amis()->TimeControl('end','结束时间')
+                                        amis()->TimeControl('end', '结束时间')
                                             ->valueFormat('HH:mm')
                                             ->timeConstraints([
                                                 'hours' => ['min' => 0, 'max' => 23],
@@ -445,16 +445,16 @@ class AccessPermissionController extends AdminController
                         ->static(false),
                     amis()->ComboControl('exclude_date', false)
                         ->items([
-                            //amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
-                            //amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                            // amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                            // amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
                             amis()->Button()->label('禁止日期 ${index+1}')->level('link'),
-                            amis()->DateControl('begin','开始日期')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                            amis()->DateControl('begin', '开始日期')
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择开始日期')
                                 ->minDate('${today()}')
                                 ->required(),
-                            amis()->DateControl('end','结束日期')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                            amis()->DateControl('end', '结束日期')
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择结束日期')
                                 ->minDate('${begin||today()}')
                                 ->required(),
@@ -473,16 +473,16 @@ class AccessPermissionController extends AdminController
                         ->static(false),
                     amis()->ComboControl('allow_date', false)
                         ->items([
-                            //amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
-                            //amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
+                            // amis()->DateControl('date','日期${index+1}')->size('lg')->required(),
+                            // amis()->InputTimeRange()->name('begin')->extraName('end')->required(),
                             amis()->Button()->label('允许日期 ${index+1}')->level('link'),
-                            amis()->DateControl('begin','开始日期')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                            amis()->DateControl('begin', '开始日期')
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择开始日期')
                                 ->minDate('${today()}')
                                 ->required(),
-                            amis()->DateControl('end','结束日期')
-                                ->shortcuts(['today','tomorrow','7dayslater'])
+                            amis()->DateControl('end', '结束日期')
+                                ->shortcuts(['today', 'tomorrow', '7dayslater'])
                                 ->placeholder('请选择结束日期')
                                 ->minDate('${begin||today()}')
                                 ->required(),
@@ -512,6 +512,4 @@ class AccessPermissionController extends AdminController
     {
         return $this->service->permissionAll();
     }
-
-
 }
