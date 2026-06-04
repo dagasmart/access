@@ -3,13 +3,12 @@
 namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessDispatch;
-use DagaSmart\Access\Models\AccessUser;
 use DagaSmart\Organization\Models\Device;
 use DagaSmart\Organization\Models\Enterprise;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
 use DagaSmart\Organization\Services\EnterpriseService;
 use Illuminate\Database\Eloquent\Builder;
-
+use PhpMqtt\Client\Facades\MQTT;
 
 /**
  * 门禁设备-服务类
@@ -19,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class AccessDispatchService extends AdminService
 {
-	protected string $modelName = AccessDispatch::class;
+    protected string $modelName = AccessDispatch::class;
 
     public function loadRelations($query): void
     {
@@ -77,7 +76,7 @@ class AccessDispatchService extends AdminService
                 $query->whereIn('id', $ids);
             });
         });
-        //$query->where(['device_type' => 'access']); //只查门禁设备
+        // $query->where(['device_type' => 'access']); //只查门禁设备
     }
 
     public function list(): array
@@ -88,48 +87,44 @@ class AccessDispatchService extends AdminService
                 $item['user_type1111'] = '1111111111111111';
             }
         }
+
         return $list;
     }
 
     /**
      * 保存前
-     * @param $data
-     * @param $primaryKey
-     * @return void
      */
     public function saving(&$data, $primaryKey = null): void
     {
-        $data['device_type'] = 'access'; //门禁
+        $data['device_type'] = 'access'; // 门禁
     }
 
     /**
      * 新增或修改后更新关联数据
-     * @param $model
-     * @param bool $isEdit
-     * @return void
+     *
+     * @param  bool  $isEdit
      */
     public function saved($model, $isEdit = false): void
     {
         parent::saved($model, $isEdit);
         $request = request()->all();
-        if ($model->id && !empty($request['enterprise_id']) && !empty($request['facility_id'])) {
-        $data = [
-            'enterprise_id' => $request['enterprise_id'],
-            'facility_id' => $request['facility_id'],
-            'device_id' => $model->id,
-        ];
-        admin_transaction(function () use ($data) {
-            if ($data['device_id']) {
-                EnterpriseFacilityDevice::query()->where($data)->delete();
-            }
-            EnterpriseFacilityDevice::query()->insert($data);
-        });
+        if ($model->id && ! empty($request['enterprise_id']) && ! empty($request['facility_id'])) {
+            $data = [
+                'enterprise_id' => $request['enterprise_id'],
+                'facility_id' => $request['facility_id'],
+                'device_id' => $model->id,
+            ];
+            admin_transaction(function () use ($data) {
+                if ($data['device_id']) {
+                    EnterpriseFacilityDevice::query()->where($data)->delete();
+                }
+                EnterpriseFacilityDevice::query()->insert($data);
+            });
         }
     }
 
     /**
      * 左侧菜单栏
-     * @return array
      */
     public static function getNavList(): array
     {
@@ -141,7 +136,7 @@ class AccessDispatchService extends AdminService
                 return [
                     'label' => $res->name,
                     'value' => $res->id,
-                    'to'    => admin_url('biz/access/dispatch?enterprise_id=' . $res->id.'&enterprise_name=' . $res->name),
+                    'to' => admin_url('biz/access/dispatch?enterprise_id='.$res->id.'&enterprise_name='.$res->name),
                     'active' => $res->id === (int) request('enterprise_id'),
                     'activeOn' => $res->id === (int) request('enterprise_id'),
                 ];
@@ -162,23 +157,23 @@ class AccessDispatchService extends AdminService
 
     /**
      * 递归选择项
-     * @return array
      */
     public function getFacilityAll(): array
     {
         $id = request('id');
         $enterprise_id = request('enterprise_id');
         $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b','a.id','=','b.facility_id')
+            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function($query) use ($enterprise_id) {
+            ->when($enterprise_id, function ($query) use ($enterprise_id) {
                 $query->where('b.enterprise_id', $enterprise_id);
             })
-            ->when($id, function($query) use ($id) {
+            ->when($id, function ($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);
             })
             ->get()
             ->toArray();
+
         return array2tree($data);
     }
 
@@ -188,52 +183,52 @@ class AccessDispatchService extends AdminService
     public function getDeviceAll(): array
     {
         $model = new Device;
+
         return $model->query()
             ->select(['id as value', 'device_name as label', 'id'])
-            ->where(['device_type'=>'access'])
+            ->where(['device_type' => 'access'])
             ->get()
             ->toArray();
     }
 
     /**
      * 下发至设备
-     * @return bool
      */
     public function userFacePublish(): bool
     {
         $id = request('id');
-        admin_abort_if(!$id, 'id不能为空');
-        $row = $this->query()->with('user','device')->where('id', $id)->first();
-//        dump($row->toArray());die;
-        if (!$row) {
+        admin_abort_if(! $id, 'id不能为空');
+        $row = $this->query()->with('user', 'device')->where('id', $id)->first();
+        //        dump($row->toArray());die;
+        if (! $row) {
             admin_abort('用户不存在');
         }
-        if (!$row->user) {
+        if (! $row->user) {
             admin_abort('用户基础数据不存在');
         }
-        if (!$row->device) {
+        if (! $row->device) {
             admin_abort('门禁设备数据不存在');
         }
         // 创建注册人员
-//        $data = [
-//            'client_id' => 'f3631cb0-a66a5c60',
-//            'version' => '0.2',
-//            'cmd' => 'create_face',
-//            'per_id' => $row->user->user_id,
-//            'face_id' => $row->user->user_id,
-//            'per_name' => $row->user->user_name,
-//            'idcardNum' => base64_decode($row->user->id_card_enc),
-//            'img_data' => '',
-//            'img_url' => 'http://bjylt.oss-cn-chengdu.aliyuncs.com/image/2026-01/15/520327201101030145.jpg',
-//            'idcardper' => base64_decode($row->user->id_card_enc),
-//            's_time' => time(),
-//            'e_time' => strtotime('+1 year'),
-//            'per_type' => 0, //名单类型	0-白名单 2-黑名单
-//            'usr_type' => 1, //权限组 0,1,2,3,4,5
-//            'auth_type' => 0,
-//            'auth_type_name' => 'c2NobWlkdA==',
-//            'dscode_img' => 'fffffff'
-//        ];
+        //        $data = [
+        //            'client_id' => 'f3631cb0-a66a5c60',
+        //            'version' => '0.2',
+        //            'cmd' => 'create_face',
+        //            'per_id' => $row->user->user_id,
+        //            'face_id' => $row->user->user_id,
+        //            'per_name' => $row->user->user_name,
+        //            'idcardNum' => base64_decode($row->user->id_card_enc),
+        //            'img_data' => '',
+        //            'img_url' => 'http://bjylt.oss-cn-chengdu.aliyuncs.com/image/2026-01/15/520327201101030145.jpg',
+        //            'idcardper' => base64_decode($row->user->id_card_enc),
+        //            's_time' => time(),
+        //            'e_time' => strtotime('+1 year'),
+        //            'per_type' => 0, //名单类型	0-白名单 2-黑名单
+        //            'usr_type' => 1, //权限组 0,1,2,3,4,5
+        //            'auth_type' => 0,
+        //            'auth_type_name' => 'c2NobWlkdA==',
+        //            'dscode_img' => 'fffffff'
+        //        ];
 
         $data = [
             'client_id' => strval($row->device->device_sn),
@@ -248,19 +243,20 @@ class AccessDispatchService extends AdminService
             'idcardper' => base64_decode($row->user->id_card_enc),
             's_time' => time(),
             'e_time' => strtotime('+1 year'),
-            'per_type' => 0, //名单类型	0-白名单 2-黑名单
-            'usr_type' => 1, //权限组 0,1,2,3,4,5
+            'per_type' => 0, // 名单类型	0-白名单 2-黑名单
+            'usr_type' => 1, // 权限组 0,1,2,3,4,5
             'auth_type' => 0,
             'auth_type_name' => 'c2NobWlkdA==',
-            'dscode_img' => 'fffffff'
+            'dscode_img' => 'fffffff',
         ];
-        //f3631cb0-a66a5c60
-        //495462f0-0c7e176d
+        // f3631cb0-a66a5c60
+        // 495462f0-0c7e176d
         if ($this->userFaceDelete($row->device->device_sn, $row->user->user_id)) {
             if ($this->runPublish($row->device->device_sn, $data)) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -274,29 +270,25 @@ class AccessDispatchService extends AdminService
                 'version' => '0.2',
                 'cmd' => 'delete_face',
                 'per_id' => strval($per_id),
-                'type' => 0
+                'type' => 0,
             ];
+
             return $this->runPublish($device_sn, $data);
         }
+
         return false;
     }
 
-    /**
-     * @param $device_sn
-     * @param array $data
-     * @return bool
-     */
     public function runPublish($device_sn, array $data = []): bool
     {
         try {
             $topic = "face/{$device_sn}/request";
             $json = json_encode($data, JSON_UNESCAPED_UNICODE);
-            \PhpMqtt\Client\Facades\MQTT::publish($topic, $json);
+            MQTT::publish($topic, $json);
+
             return true;
         } catch (\Exception $e) {
             return false;
         }
     }
-
-
 }

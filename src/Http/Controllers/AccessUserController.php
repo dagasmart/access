@@ -2,13 +2,13 @@
 
 namespace DagaSmart\Access\Http\Controllers;
 
+use DagaSmart\Access\Enums\Enum;
+use DagaSmart\Access\Services\AccessUserService;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
-use DagaSmart\Access\Services\AccessUserService;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
-use DagaSmart\Access\Enums\Enum;
-//use PhpMqtt\Client\Facades\MQTT;
 
+// use PhpMqtt\Client\Facades\MQTT;
 
 /**
  * 基础-门禁用户类
@@ -17,16 +17,16 @@ use DagaSmart\Access\Enums\Enum;
  */
 class AccessUserController extends AdminController
 {
-	protected string $serviceName = AccessUserService::class;
+    protected string $serviceName = AccessUserService::class;
 
-	public function list(): Page
+    public function list(): Page
     {
-		$crud = $this->baseCRUD()
-			->filterTogglable(false)
-			->headerToolbar([
-				$this->createButton('dialog'),
-				...$this->baseHeaderToolBar()
-			])
+        $crud = $this->baseCRUD()
+            ->filterTogglable(false)
+            ->headerToolbar([
+                $this->createButton('dialog'),
+                ...$this->baseHeaderToolBar(),
+            ])
             ->autoGenerateFilter()
             ->affixHeader()
             ->columnsTogglable()
@@ -35,7 +35,7 @@ class AccessUserController extends AdminController
             ->columns([
                 amis()->TableColumn('user_id', 'ID')
                     ->sortable()
-                    ->set('fixed','left'),
+                    ->set('fixed', 'left'),
                 amis()->TableColumn('user_card', '用户')
                     ->searchable(amis()->FormControl()->body([
                         amis()->TextControl('user_name', '用户名')->placeholder('请输入查找的用户名')->clearable(),
@@ -56,12 +56,12 @@ class AccessUserController extends AdminController
                     ->set('type', 'tpl')
                     ->set('tpl', '${rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">${rel.grade.grade_name}</h5><h5 class="m-0 mt-1.5 text-secondary">${rel.classes.classes_name}</h5>')
                     ->width(200),
-                amis()->TableColumn('user_avatar','照片')
+                amis()->TableColumn('user_avatar', '照片')
                     ->set('type', 'avatar')
                     ->set('src', '${user_avatar}')
                     ->set('size', 60)
                     ->set('static', true)
-                    ->set('onError','return true;')
+                    ->set('onError', 'return true;')
                     ->set('onEvent', [
                         'click' => [
                             'actions' => [
@@ -70,20 +70,20 @@ class AccessUserController extends AdminController
                                     'drawer' => [
                                         'title' => false,
                                         'actions' => [],
-                                        'closeOnEsc' => true, //esc键关闭
-                                        'closeOnOutside' => true, //域外可关闭
-                                        'showCloseButton' => false, //显示关闭
+                                        'closeOnEsc' => true, // esc键关闭
+                                        'closeOnOutside' => true, // 域外可关闭
+                                        'showCloseButton' => false, // 显示关闭
                                         'body' => [
                                             amis()->Image()
                                                 ->src('${user_avatar}')
                                                 ->defaultImage(url(admin_config('admin.default_image')))
                                                 ->width('100%')
                                                 ->height('100%'),
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
                     ]),
                 amis()->TableColumn('user_type', '用户类型')
                     ->searchable(
@@ -101,10 +101,10 @@ class AccessUserController extends AdminController
                     ->set('multiple', true)
                     ->set('static', true),
                 amis()->TableColumn('state', '状态')
-                    ->set('type','switch')
-                    ->set('onText','正常')
-                    ->set('offText','停用'),
-                amis()->TableColumn('sort','排序')->sortable(),
+                    ->set('type', 'switch')
+                    ->set('onText', '正常')
+                    ->set('offText', '停用'),
+                amis()->TableColumn('sort', '排序')->sortable(),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->searchable(
                         amis()->DateRangeControl('updated_at')->valueFormat('YYYY-MM-DD HH:mm:ss'),
@@ -117,41 +117,41 @@ class AccessUserController extends AdminController
                         $this->rowShowButton(true),
                         $this->rowEditButton(true),
                         $this->rowDeleteButton(),
-                        //$this->rowSetAction('drawer', 'auto'),
+                        // $this->rowSetAction('drawer', 'auto'),
                         $this->rowSendAction('drawer', 'lg'),
-                    ])
+                    ]),
                 ])
-                    ->set('align','center')
-                    ->set('fixed','right')
-                    ->set('width',150)
+                    ->set('align', 'center')
+                    ->set('fixed', 'right')
+                    ->set('width', 150),
             ]);
 
-		return $this->baseList($crud);
-	}
+        return $this->baseList($crud);
+    }
 
-	public function form($isEdit = false): Form
+    public function form($isEdit = false): Form
     {
-		return $this->baseForm()->body([
+        return $this->baseForm()->body([
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('用户信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()
-                            ->RadiosControl('user_type','用户类型')
+                            ->RadiosControl('user_type', '用户类型')
                             ->options(Enum::user_type())
                             ->value('visitor')
                             ->disabled($isEdit)
-                            ->visible(!$isEdit),
+                            ->visible(! $isEdit),
                     ]),
-                    amis()->Divider()->lineStyle('dashed')->visible(!$isEdit),
+                    amis()->Divider()->lineStyle('dashed')->visible(! $isEdit),
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
-                            amis()->StaticExactControl('user_id','ID')->visibleOn('${id}')->copyable(),
-                            amis()->TagControl('user_type','用户类型')
+                            amis()->StaticExactControl('user_id', 'ID')->visibleOn('${id}')->copyable(),
+                            amis()->TagControl('user_type', '用户类型')
                                 ->options(Enum::user_type())
                                 ->static('${user_type !== "visitor"}')
                                 ->disabledOn('${user_type !== "visitor"}')
                                 ->visible($isEdit),
-                            amis()->StaticExactControl(false,'用户姓名')
+                            amis()->StaticExactControl(false, '用户姓名')
                                 ->value('${user_name}')
                                 ->description('<span class=text-red-300>${id_card}</span>')
                                 ->static('${user_type !== "visitor"}')
@@ -161,11 +161,11 @@ class AccessUserController extends AdminController
                                 ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>${rel?"/":""}<span class=text-blue-300>${rel.classes.classes_name}</span>')
                                 ->visible($isEdit)->visibleOn('${user_type !== "visitor"}'),
 
-                            //================以下新增时生效==================
-                            amis()->TextControl('user_name','用户姓名')
+                            // ================以下新增时生效==================
+                            amis()->TextControl('user_name', '用户姓名')
                                 ->hidden($isEdit)
                                 ->required(),
-                            amis()->TextControl('id_card','身份证号')
+                            amis()->TextControl('id_card', '身份证号')
                                 ->validateOnChange()
                                 ->validations([
                                     'matchRegexp' => '/^[\\d|*]{17}[\\dXx]$/i',
@@ -189,17 +189,17 @@ class AccessUserController extends AdminController
                             amis()->ImageControl('user_avatar')
                                 ->thumbRatio('1:1')
                                 ->thumbMode('cover h-full rounded-md overflow-hidden')
-                                ->className(['overflow-hidden'=>true, 'h-full'=>true])
+                                ->className(['overflow-hidden' => true, 'h-full' => true])
                                 ->imageClassName([
-                                    'w-52'=>true,
-                                    'h-64'=>true,
-                                    'overflow-hidden'=>true
+                                    'w-52' => true,
+                                    'h-64' => true,
+                                    'overflow-hidden' => true,
                                 ])
                                 ->fixedSize()
                                 ->fixedSizeClassName([
-                                    'w-52'=>true,
-                                    'h-64'=>true,
-                                    'overflow-hidden'=>true
+                                    'w-52' => true,
+                                    'h-64' => true,
+                                    'overflow-hidden' => true,
                                 ])
                                 ->crop([
                                     'aspectRatio' => '0.81',
@@ -210,26 +210,26 @@ class AccessUserController extends AdminController
                                             [
                                                 'actionType' => 'ajax',
                                                 'type' => 'delete',
-                                                'api' =>[
+                                                'api' => [
                                                     'url' => $this->remove(),
                                                     'method' => 'post',
                                                     'data' => [
-                                                        'file' => '${event.data.value}'
+                                                        'file' => '${event.data.value}',
                                                     ],
                                                     'messages' => [
                                                         'success' => '文件已清除',
-                                                        'fail' => '清除失败'
-                                                    ]
-                                                ]
-                                            ]
-                                        ]
-                                    ]
+                                                        'fail' => '清除失败',
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
                                 ]),
                         ]),
                     ]),
                     amis()->Divider()->lineStyle('dashed'),
                     amis()->GroupControl()->mode('horizontal')->body([
-                        amis()->CheckboxesControl('open_type','开锁模式')
+                        amis()->CheckboxesControl('open_type', '开锁模式')
                             ->options(Enum::open_type())
                             ->required(),
                     ]),
@@ -240,35 +240,34 @@ class AccessUserController extends AdminController
                 ]),
                 amis()->Tab()->title('权限设置')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
-//                        amis()->SelectControl('permission_code', '用户权限')
-//                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/all'))
-//                            ->value(),
-//                        amis()->DateRangeControl('expiry_date','进出日期')
-//                            ->valueFormat('YYYY-MM-DD')
-//                            ->description('<span class=text-blue-300>空值为长期</span>'),
+                        //                        amis()->SelectControl('permission_code', '用户权限')
+                        //                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/all'))
+                        //                            ->value(),
+                        //                        amis()->DateRangeControl('expiry_date','进出日期')
+                        //                            ->valueFormat('YYYY-MM-DD')
+                        //                            ->description('<span class=text-blue-300>空值为长期</span>'),
                     ]),
                 ]),
 
             ]),
 
+        ]);
+    }
 
-		]);
-	}
-
-	public function detail(): Form
+    public function detail(): Form
     {
-		return $this->baseDetail()->body([
+        return $this->baseDetail()->body([
 
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('用户信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
-                            amis()->StaticExactControl('user_id','ID')->visibleOn('${id}')->copyable(),
-                            amis()->TagControl('user_type','用户类型')
+                            amis()->StaticExactControl('user_id', 'ID')->visibleOn('${id}')->copyable(),
+                            amis()->TagControl('user_type', '用户类型')
                                 ->options(Enum::user_type())
                                 ->static('${user_type !== "visitor"}')
                                 ->disabledOn('${user_type !== "visitor"}'),
-                            amis()->StaticExactControl(false,'用户姓名')
+                            amis()->StaticExactControl(false, '用户姓名')
                                 ->value('${user_name}')
                                 ->description('<span class=text-red-300>${id_card}</span>')
                                 ->copyable()
@@ -283,17 +282,17 @@ class AccessUserController extends AdminController
                             amis()->ImageControl('user_avatar')
                                 ->thumbRatio('1:1')
                                 ->thumbMode('cover h-full rounded-md overflow-hidden')
-                                ->className(['overflow-hidden'=>true, 'h-full'=>true])
+                                ->className(['overflow-hidden' => true, 'h-full' => true])
                                 ->imageClassName([
-                                    'w-52'=>true,
-                                    'h-64'=>true,
-                                    'overflow-hidden'=>true
+                                    'w-52' => true,
+                                    'h-64' => true,
+                                    'overflow-hidden' => true,
                                 ])
                                 ->fixedSize()
                                 ->fixedSizeClassName([
-                                    'w-52'=>true,
-                                    'h-64'=>true,
-                                    'overflow-hidden'=>true
+                                    'w-52' => true,
+                                    'h-64' => true,
+                                    'overflow-hidden' => true,
                                 ])
                                 ->crop([
                                     'aspectRatio' => '0.81',
@@ -303,7 +302,7 @@ class AccessUserController extends AdminController
                     amis()->Divider()->lineStyle('dashed'),
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()
-                            ->CheckboxesControl('open_type','开锁模式')
+                            ->CheckboxesControl('open_type', '开锁模式')
                             ->options(Enum::open_type())
                             ->disabled()
                             ->static(false),
@@ -311,8 +310,8 @@ class AccessUserController extends AdminController
                 ]),
             ]),
 
-		])->static();
-	}
+        ])->static();
+    }
 
     public function options(): array
     {
@@ -321,6 +320,7 @@ class AccessUserController extends AdminController
 
     /**
      * 获取用户列表
+     *
      * @return array
      */
     public function userAll()
@@ -328,10 +328,9 @@ class AccessUserController extends AdminController
         return $this->service->userAll();
     }
 
-
     protected function rowSetAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
     {
-        $title  = $title ?: '设置';
+        $title = $title ?: '设置';
         $action = amis()->LinkAction()->link($this->getEditPath());
 
         if ($dialog) {
@@ -342,7 +341,7 @@ class AccessUserController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】' .$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】'.$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(
@@ -368,7 +367,7 @@ class AccessUserController extends AdminController
                 ])
                 ->body('提示：请确保网络环境可以正常访问'),
             amis()->Tabs()->tabsMode('line')->tabs([
-                //操作权限
+                // 操作权限
                 amis()->Tab()->title('基本信息')->icon('menu')->body([
                     amis()->StaticExactControl()
                         ->label('ID')
@@ -387,9 +386,9 @@ class AccessUserController extends AdminController
                         ->label('状态')
                         ->onText('开启')
                         ->offText('禁用')
-                        ->disabled()
+                        ->disabled(),
                 ]),
-                //数据权限
+                // 数据权限
                 amis()->Tab()->title('数据权限')->icon('menu')->body([
                     amis()->CheckboxesControl('auth_data', '可授权数据')
                         ->source('system/admin_permissions/1000/data/option?route=')
@@ -398,20 +397,19 @@ class AccessUserController extends AdminController
                         ->checkAll()
                         ->inline(false)
                         ->joinValues()
-                        ->columnsCount(array_merge([1],array_fill(0, 300, 2)))
+                        ->columnsCount(array_merge([1], array_fill(0, 300, 2)))
                         ->labelClassName(['w-28' => true])
-                        ->options()
+                        ->options(),
 
-                ])
+                ]),
             ]),
 
         ]);
     }
 
-
     protected function rowSendAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
     {
-        $title  = $title ?: '下发到设备';
+        $title = $title ?: '下发到设备';
         $action = amis()->LinkAction()->link($this->getEditPath());
 
         if ($dialog) {
@@ -422,7 +420,7 @@ class AccessUserController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->resizable()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】' .$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->resizable()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】'.$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(
@@ -448,7 +446,7 @@ class AccessUserController extends AdminController
                 ])
                 ->body('提示：请确保网络环境可以正常访问'),
             amis()->Tabs()->tabsMode('line')->tabs([
-                //设备列表
+                // 设备列表
                 amis()->Tab()->title('设备列表')->icon('menu')->body([
                     amis()->TableControl('device_data', false)
                         ->addable()
@@ -472,8 +470,7 @@ class AccessUserController extends AdminController
                             amis()->TableColumn('device_id', '设备')
                                 ->sortable(),
 
-                    ])
-
+                        ]),
 
                 ]),
             ]),
@@ -500,12 +497,11 @@ class AccessUserController extends AdminController
             'usr_type' => 1,
             'auth_type' => 1,
             'auth_type_name' => 'c2NobWlkdA==',
-            'dscode_img' => 'fffffff'
+            'dscode_img' => 'fffffff',
         ];
         $topic = 'face/f3631cb0-a66a5c60/request';
-        //MQTT::publish($topic, json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        // MQTT::publish($topic, json_encode($data, JSON_UNESCAPED_UNICODE));
         return true;
     }
-
-
 }

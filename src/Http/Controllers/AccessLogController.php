@@ -2,8 +2,8 @@
 
 namespace DagaSmart\Access\Http\Controllers;
 
-use DagaSmart\BizAdmin\Controllers\AdminController;
 use DagaSmart\Access\Services\AccessLogService;
+use DagaSmart\BizAdmin\Controllers\AdminController;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 
@@ -16,8 +16,8 @@ class AccessLogController extends AdminController
         $crud = $this->baseCRUD()
             ->filterTogglable(false)
             ->headerToolbar([
-                $this->createButton('dialog',250),
-                ...$this->baseHeaderToolBar()
+                $this->createButton('dialog', 250),
+                ...$this->baseHeaderToolBar(),
             ])
             ->autoGenerateFilter()
             ->affixHeader()
@@ -27,30 +27,30 @@ class AccessLogController extends AdminController
             ->columns([
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
-                    ->set('fixed','left'),
-                amis()->TableColumn('user.user_avatar','照片')
+                    ->set('fixed', 'left'),
+                amis()->TableColumn('user.user_avatar', '照片')
                     ->set('type', 'avatar')
                     ->set('src', '${user.user_avatar}')
                     ->set('size', 'small')
-                    ->set('fixed','left'),
-                amis()->TableColumn('user_name','用户姓名')
+                    ->set('fixed', 'left'),
+                amis()->TableColumn('user_name', '用户姓名')
                     ->searchable([
                         'name' => 'device_sn',
                         'type' => 'input-text',
                     ])
-                    ->set('fixed','left'),
-                amis()->TableColumn('device_pos','行为事件')
+                    ->set('fixed', 'left'),
+                amis()->TableColumn('device_pos', '行为事件')
                     ->searchable([
                         'name' => 'device_pos',
                         'type' => 'select',
-                        'options' => [['label' => '进口入场', 'value' => 'in'],['label' => '出口离场', 'value' => 'out']]
+                        'options' => [['label' => '进口入场', 'value' => 'in'], ['label' => '出口离场', 'value' => 'out']],
                     ])
                     ->set('type', 'mapping')
                     ->set('map', [
                         'in' => '<span class="label label-success rounded-full border">进口入场</span>',
-                        'out' => '<span class="label label-danger rounded-full border">出口离场</span>'
+                        'out' => '<span class="label label-danger rounded-full border">出口离场</span>',
                     ]),
-                amis()->TableColumn('scene_photo','现场实拍')
+                amis()->TableColumn('scene_photo', '现场实拍')
                     ->set('type', 'static-image')
                     ->set('src', '${scene_photo}')
                     ->set('width', 30)
@@ -95,11 +95,11 @@ class AccessLogController extends AdminController
                     amis()->Operation()->label(admin_trans('admin.actions'))->buttons([
                         $this->rowShowButton(true),
                         $this->rowDeleteButton(),
-                    ])
+                    ]),
                 ])
-                    ->set('align','center')
-                    ->set('fixed','right')
-                    ->set('width',100)
+                    ->set('align', 'center')
+                    ->set('fixed', 'right')
+                    ->set('width', 100),
             ]);
 
         return $this->baseList($crud);
@@ -118,11 +118,11 @@ class AccessLogController extends AdminController
                 amis()->Tab()->title('记录信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
-                            amis()->StaticExactControl('user_id','ID')->visibleOn('${id}'),
-                            amis()->StaticExactControl('user_name','用户'),
-                            amis()->StaticExactControl('rel.enterprise.enterprise_name','机构单位'),
-                            amis()->StaticExactControl('rel.facility.facility_name','设施主体'),
-                            amis()->StaticExactControl('rel.device.device_name','设备名称'),
+                            amis()->StaticExactControl('user_id', 'ID')->visibleOn('${id}'),
+                            amis()->StaticExactControl('user_name', '用户'),
+                            amis()->StaticExactControl('rel.enterprise.enterprise_name', '机构单位'),
+                            amis()->StaticExactControl('rel.facility.facility_name', '设施主体'),
+                            amis()->StaticExactControl('rel.device.device_name', '设备名称'),
                             amis()->StaticExactControl('rel.device.device_sn', '设备编码'),
                             amis()->StaticExactControl('created_at', '发生时间'),
                         ]),
@@ -134,13 +134,11 @@ class AccessLogController extends AdminController
                                 ->width('300px')
                                 ->height('350px'),
 
-                        ])
+                        ]),
                     ]),
 
                 ]),
-            ])
+            ]),
         ])->static();
     }
-
-
 }
