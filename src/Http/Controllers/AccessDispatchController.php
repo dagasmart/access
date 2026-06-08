@@ -42,11 +42,18 @@ class AccessDispatchController extends AdminController
     public function page(): Page
     {
         return amis()->Page()->body(
-            amis()->Flex()->items([
-                $this->tree(),
-                $this->list(),
-                // $this->chart(),
-            ])
+            amis()->Grid()->columns([
+                amis()->Flex()->className('h-full')->items([
+                    $this->tree(),
+                ])->direction('column')->set('md', 2),
+                amis()->Flex()->className('h-full')->items([
+                    $this->list(),
+                ])->set('md', 7),
+                amis()->Flex()->className('h-full')->items([
+                    $this->chart(),
+                    $this->barChart(),
+                ])->direction('column'),
+            ]),
         );
     }
 
@@ -55,10 +62,10 @@ class AccessDispatchController extends AdminController
      */
     public function tree()
     {
-        return amis()->Card()->className('w-1/5 mr-5 mb-0')->body([
+        return amis()->Card()->className('h-full')->body([
             amis()
                 ->Nav()
-                ->style(['padding' => '10px 0'])
+                ->className()
                 ->links(AccessDispatchService::getNavList())
                 ->stacked()
                 ->searchable(),
@@ -70,7 +77,7 @@ class AccessDispatchController extends AdminController
      */
     public function chart()
     {
-        return amis()->Card()->className('w-1/4 ml-5 mb-0')->body([
+        return amis()->Card()->className('w-full h-full')->body([
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('异常排查')->icon('menu')->body([
                 ]),
@@ -404,18 +411,17 @@ class AccessDispatchController extends AdminController
                     'subtext' => '统计图',
                 ],
                 'tooltip' => ['trigger' => 'axis'],
-                'legend' => ['data' => ['最高气温', '最低气温']],
+                'legend' => ['data' => ['成功', '失败']],
                 'xAxis' => [
                     'type' => 'category',
                     'boundaryGap' => false,
                     'data' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 ],
                 'yAxis' => ['type' => 'value'],
-                'grid' => ['left' => '7%', 'right' => '3%', 'top' => 60, 'bottom' => 30],
-                'legend' => ['data' => ['成功', '失败']],
+                'grid' => ['right' => '1%', 'top' => 60, 'bottom' => 20],
                 'series' => [
                     [
-                        'name' => '成功',
+                        'name' => false,
                         'data' => [10, 2, 30, 4, 50, 16, 7],
                         'type' => 'line',
                         'areaStyle' => [],
@@ -423,9 +429,9 @@ class AccessDispatchController extends AdminController
                         'symbol' => 'none',
                     ],
                     [
-                        'name' => '失败',
-                        'data' => [7, 6, 5, 4, 3, 2, 1],
-                        'type' => 'bar',
+                        'name' => false,
+                        'data' => [7, 16, 25, 34, 3, 22, 11],
+                        'type' => 'line',
                         'areaStyle' => [],
                         'smooth' => true,
                         'symbol' => 'none',

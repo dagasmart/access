@@ -10,15 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class AccessDevice extends Model
 {
-
     protected $table = 'biz_device';
+
     protected $primaryKey = 'id';
 
     public $timestamps = true;
 
-    public function rel(): hasOne
+    public function rel(): HasOne
     {
-        return $this->hasOne(EnterpriseFacilityDevice::class,'device_id','id')->with(['enterprise','facility']);
+        return $this->hasOne(EnterpriseFacilityDevice::class, 'device_id', 'id')->with(['enterprise', 'facility']);
     }
 
     public function enterprise(): HasOne
@@ -26,7 +26,6 @@ class AccessDevice extends Model
         return $this->hasOne(EnterpriseFacilityDevice::class,
             'device_id',
             'id'
-            )->with(['enterprise']);
+        )->with(['enterprise']);
     }
-
 }
