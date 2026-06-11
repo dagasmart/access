@@ -9,20 +9,19 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class AccessDispatch extends Model
 {
-
     protected $table = 'biz_access_dispatch';
+
     protected $primaryKey = 'id';
 
     public $timestamps = true;
 
-    public function user(): hasOne
+    public function user(): HasOne
     {
-        return $this->hasOne(AccessUser::class,'id','access_user_id');
+        return $this->hasOne(AccessUser::class, 'id', 'access_user_id');
     }
 
-    public function device(): hasOne
+    public function device(): HasOne
     {
-        return $this->hasOne(AccessDevice::class,'id','access_device_id')->with('rel');
+        return $this->hasOne(AccessDevice::class, 'id', 'access_device_id')->with('rel');
     }
-
 }

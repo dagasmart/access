@@ -19,7 +19,7 @@ class AccessDeviceService extends AdminService
 
     public function loadRelations($query): void
     {
-        $query->with(['rel']);
+        $query->whereHas('rel');
     }
 
     public function sortable($query): void

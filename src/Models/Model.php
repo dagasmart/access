@@ -3,19 +3,17 @@
 namespace DagaSmart\Access\Models;
 
 use DagaSmart\BizAdmin\Models\BaseModel;
-use DagaSmart\BizAdmin\Scopes\ActiveScope;
 
 /**
  *基座模型
  */
 class Model extends BaseModel
 {
-
-    const ?string schema = 'school'; //空值默认数据库
+    const ?string schema = 'school'; // 空值默认数据库
 
     public function __construct()
     {
-        if (!empty(self::schema)) {
+        if (! empty(self::schema)) {
             $this->setConnection(self::schema);
         }
         parent::__construct();
@@ -25,5 +23,4 @@ class Model extends BaseModel
     {
         parent::booted();
     }
-
 }

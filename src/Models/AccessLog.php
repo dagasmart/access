@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class AccessLog extends Model
 {
+    protected $table = 'biz_access_log';
 
-	protected $table = 'biz_access_log';
     protected $primaryKey = 'id';
 
     public $timestamps = true;
@@ -21,14 +21,13 @@ class AccessLog extends Model
         return admin_image_url($value);
     }
 
-    public function rel(): hasOne
+    public function rel(): HasOne
     {
-        return $this->hasOne(EnterpriseFacilityDevice::class,'device_id','device_id')->with(['enterprise','facility','device']);
+        return $this->hasOne(EnterpriseFacilityDevice::class, 'device_id', 'device_id')->with(['enterprise', 'facility', 'device']);
     }
 
     public function user(): HasOne
     {
         return $this->hasOne(AccessUser::class, 'user_id', 'user_id');
     }
-
 }
