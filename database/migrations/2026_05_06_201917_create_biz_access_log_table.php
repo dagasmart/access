@@ -18,10 +18,10 @@ return new class extends Migration
         && Schema::create($this->name, function (Blueprint $table) {
             $table->comment('数智校园-门禁记录表');
             $table->id();
-            $table->integer('enterprise_id')->nullable()->index()->comment('机构id');
-            $table->integer('facility_id')->nullable()->index()->comment('设施id');
-            $table->integer('device_id')->nullable()->index()->comment('设备id');
-            $table->string('user_id', 64)->nullable()->index()->comment('用户id');
+            $table->unsignedBigInteger('enterprise_id')->nullable()->index()->comment('机构id');
+            $table->unsignedBigInteger('facility_id')->nullable()->index()->comment('设施id');
+            $table->unsignedBigInteger('device_id')->nullable()->index()->comment('设备id');
+            $table->unsignedBigInteger('user_id')->nullable()->index()->comment('用户id');
             $table->string('user_name', 32)->nullable()->comment('用户姓名');
             $table->string('device_pos', 32)->nullable()->comment('设备位置');
             $table->text('scene_photo')->nullable()->comment('现场照片');
