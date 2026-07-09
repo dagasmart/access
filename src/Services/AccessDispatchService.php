@@ -129,6 +129,7 @@ class AccessDispatchService extends AdminService
     public static function getNavList(): array
     {
         return Enterprise::query()
+            ->whereHas('bind')
             ->where('state', 1)
             ->orderBy('id')
             ->get(['id', 'enterprise_name as name'])
