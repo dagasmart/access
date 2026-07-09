@@ -19,7 +19,7 @@ class AccessDeviceService extends AdminService
 
     public function loadRelations($query): void
     {
-        $query->whereHas('rel');
+        $query->whereHas('rel')->with(['rel']);
     }
 
     public function sortable($query): void
@@ -53,18 +53,32 @@ class AccessDeviceService extends AdminService
     public function saved($model, $isEdit = false): void
     {
         parent::saved($model, $isEdit);
+
         $request = request()->all();
-        if ($model->id && ! empty($request['enterprise_id']) && ! empty($request['facility_id'])) {
-            $data = [
-                'enterprise_id' => $request['enterprise_id'],
-                'facility_id' => $request['facility_id'],
+
+        $enterprise_id = $request['enterprise_id'];
+        $facility_id = $request['facility_id'];
+
+        if ($model->id && ! empty($enterprise_id) && ! empty($facility_id)) {
+            // 如果device_id只能关联一条记录，应该以 device_id 作为查找条件
+            $priKey = [
                 'device_id' => $model->id,
             ];
-            admin_transaction(function () use ($data) {
-                if ($data['device_id']) {
-                    EnterpriseFacilityDevice::query()->where($data)->delete();
-                }
-                EnterpriseFacilityDevice::query()->insert($data);
+            // 更新/创建的数组
+            $values = [
+                'enterprise_id' => $enterprise_id,
+                'facility_id' => $facility_id,
+                'module' => admin_current_module(),
+                'mer_id' => admin_mer_id(),
+            ];
+
+            admin_transaction(function () use ($priKey, $values) {
+                // 如果记录已存在则更新，不存在则创建
+                // 前提：数据库有对应的联合唯一索引
+                EnterpriseFacilityDevice::updateOrCreate(
+                    $priKey,  // 查找条件
+                    $values // 更新/创建的值
+                );
             });
         }
     }
@@ -76,10 +90,7 @@ class AccessDeviceService extends AdminService
     {
         $model = new EnterpriseService;
 
-        return $model->query()
-            ->select(['id as value', 'enterprise_name as label', 'id'])
-            ->get()
-            ->toArray();
+        return $model->getEnterpriseAll();
     }
 
     /**

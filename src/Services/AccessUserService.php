@@ -4,9 +4,8 @@ namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessUser;
 use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
-use DagaSmart\Organization\Services\EnterpriseService;
+use DagaSmart\Organization\Services\StudentService;
 use Illuminate\Database\Eloquent\Builder;
-
 
 /**
  * 门禁用户-服务类
@@ -16,18 +15,18 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class AccessUserService extends AdminService
 {
-	protected string $modelName = AccessUser::class;
+    protected string $modelName = AccessUser::class;
 
     public function loadRelations($query): void
     {
         $query->with('rel');
-//        $query->whereHas('rel', function ($query) {
-//            $mer_id = admin_mer_id();
-//            $query->where('module', admin_current_module())
-//                ->when($mer_id, function ($query) use ($mer_id) {
-//                    $query->where('mer_id', $mer_id);
-//                });
-//        })->with(['rel']);
+        //        $query->whereHas('rel', function ($query) {
+        //            $mer_id = admin_mer_id();
+        //            $query->where('module', admin_current_module())
+        //                ->when($mer_id, function ($query) use ($mer_id) {
+        //                    $query->where('mer_id', $mer_id);
+        //                });
+        //        })->with(['rel']);
     }
 
     public function sortable($query): void
@@ -42,7 +41,7 @@ class AccessUserService extends AdminService
     public function searchable($query): void
     {
         parent::searchable($query);
-        //$query->where(['device_type' => 'access']); //只查门禁设备
+        // $query->where(['device_type' => 'access']); //只查门禁设备
     }
 
     public function list(): array
@@ -56,30 +55,28 @@ class AccessUserService extends AdminService
                 $item['rel'] = 111111111111;
             }
         }
+
         return $list;
     }
 
     /**
      * 保存前
-     * @param $data
-     * @param $primaryKey
-     * @return void
      */
     public function saving(&$data, $primaryKey = null): void
     {
         $enterprise_id = $data['enterprise_id'] ?? null;
-        //身份证号
+        // 身份证号
         admin_abort_if(empty($data['id_card']), '请输入有效身份证号');
         $id_card = $data['id_card'] ?? null;
         if ($id_card) {
             if (strpos($id_card, '*')) {
                 unset($data['id_card']);
             } else {
-                //身份证号校验
+                // 身份证号校验
                 identifyByIdCard($id_card);
-                //是否已存在
+                // 是否已存在
                 $id = $data['id'] ?? null;
-                $exists = $this->getModel()::query()
+                $exists = $this->query()
                     ->where(['enterprise_id' => $enterprise_id])
                     ->where(['id_card' => $id_card])
                     ->when($id, function ($query) use ($id) {
@@ -93,15 +90,14 @@ class AccessUserService extends AdminService
 
     /**
      * 新增或修改后更新关联数据
-     * @param $model
-     * @param bool $isEdit
-     * @return void
+     *
+     * @param  bool  $isEdit
      */
     public function saved($model, $isEdit = false): void
     {
         parent::saved($model, $isEdit);
         $request = request()->all();
-        if ($model->id && !empty($request['enterprise_id']) && !empty($request['facility_id'])) {
+        if ($model->id && ! empty($request['enterprise_id']) && ! empty($request['facility_id'])) {
             $data = [
                 'enterprise_id' => $request['enterprise_id'],
                 'facility_id' => $request['facility_id'],
@@ -121,7 +117,8 @@ class AccessUserService extends AdminService
      */
     public function getEnterpriseAll(): array
     {
-        $student = new \DagaSmart\Organization\Services\StudentService;
+        $student = new StudentService;
+
         return $student->getEnterpriseAll();
     }
 
@@ -130,17 +127,18 @@ class AccessUserService extends AdminService
      */
     public function getGradeAll(): array
     {
-        $student = new \DagaSmart\Organization\Services\StudentService;
+        $student = new StudentService;
+
         return $student->getGradeAll();
     }
 
     /**
      * 班级列表
-     * @return array
      */
     public function getClassesAll(): array
     {
-        $student = new \DagaSmart\Organization\Services\StudentService;
+        $student = new StudentService;
+
         return $student->getClassesAll();
     }
 
@@ -161,7 +159,7 @@ class AccessUserService extends AdminService
                         ->when($classes_id, function ($query) use ($classes_id) {
                             $query->where('classes_id', $classes_id);
                         })
-                        ->when(!is_null($is_boarder), function ($query) use ($is_boarder) {
+                        ->when(! is_null($is_boarder), function ($query) use ($is_boarder) {
                             $query->where('is_boarder', $is_boarder);
                         });
                 })
@@ -170,39 +168,39 @@ class AccessUserService extends AdminService
                 ->get(['id as value', 'user_name as label', 'user_id', 'id_card', admin_raw("concat(user_name,'⟨',id_card,'⟩') as label_as")])
                 ->toArray();
         }
+
         return [];
     }
 
     /**
      * 权限列表
-     * @return array
      */
     public function getPermissionAll(): array
     {
-        $permission = new \DagaSmart\Access\Services\AccessPermissionService;
+        $permission = new AccessPermissionService;
+
         return $permission->permissionAll();
     }
 
     /**
      * 递归选择项
-     * @return array
      */
     public function options(): array
     {
         $id = request()->id;
         $enterprise_id = request()->enterprise_id;
         $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b','a.id','=','b.facility_id')
+            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function($query) use ($enterprise_id) {
+            ->when($enterprise_id, function ($query) use ($enterprise_id) {
                 $query->where('b.enterprise_id', $enterprise_id);
             })
-            ->when($id, function($query) use ($id) {
+            ->when($id, function ($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);
             })
             ->get()
             ->toArray();
+
         return array2tree($data);
     }
-
 }

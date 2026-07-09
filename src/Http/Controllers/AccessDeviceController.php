@@ -242,7 +242,7 @@ class AccessDeviceController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${device_name}</font>】'.$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<b class=text-danger>${device_name}</b>】'.$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(

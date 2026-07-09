@@ -12,7 +12,7 @@ class Middleware
     public function handle(Request $request, Closure $next)
     {
         if (! admin_extension_enabled('dagasmart.organization')) {
-            return admin_response()->fail('没有找到「<font color="#f40">基础安装包</font>」，请进行安装并启用');
+            return admin_response()->fail('没有找到「<b class=text-danger>基础安装包</b>」，请进行安装并启用');
         }
 
         if (admin_extension_expiry('dagasmart.access')) {

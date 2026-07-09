@@ -341,7 +341,7 @@ class AccessUserController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】'.$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->closeOnEsc()->closeOnOutside()->title('【<b class=text-danger>${user_name}</b>】'.$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(
@@ -420,7 +420,7 @@ class AccessUserController extends AdminController
 
             if ($dialog === 'drawer') {
                 $action = amis()->DrawerAction()->drawer(
-                    amis()->Drawer()->resizable()->closeOnEsc()->closeOnOutside()->title('【<font color="orangered">${user_name}</font>】'.$title)->body($form)->size($dialogSize)
+                    amis()->Drawer()->resizable()->closeOnEsc()->closeOnOutside()->title('【<b class=text-danger>${user_name}</b>】'.$title)->body($form)->size($dialogSize)
                 );
             } else {
                 $action = amis()->DialogAction()->dialog(
