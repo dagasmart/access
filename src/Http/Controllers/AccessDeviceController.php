@@ -109,55 +109,67 @@ class AccessDeviceController extends AdminController
     public function form($isEdit = false): Form
     {
         return $this->baseForm()->body([
-            amis()->SelectControl('enterprise_id', '机构单位')
-                ->options($this->service->getEnterpriseAll())
-                ->value('${rel.enterprise_id}')
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '设施主体')
-                ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->options())
-                ->value('${rel.facility.id}')
-                ->disabledOn('${!enterprise_id}')
-                ->onlyLeaf()
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_name', '设备名称')
-                ->placeholder('例:智能门禁机-进-1')
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->options(Enum::brand('access'))
-                ->placeholder('请选择品牌')
-                ->clearable()
-                ->required(),
-            amis()->TextControl('device_model', '设备型号')
-                ->placeholder('设备型号，如ET293')
-                ->clearable()
-                ->required(),
-            amis()->InputGroupControl('device_sn', '设备编号')->body([
-                amis()->TextControl('device_sn', '设备编号')
-                    ->placeholder('请填写设备编号，如sn')
-                    ->clearable()
-                    ->required(),
-                amis()->SelectControl('device_pos', '安装位置')
-                    ->options(Enum::DevicePos)
-                    ->placeholder('安装位置')
-                    ->required(),
-            ])->required(),
-            amis()->TextareaControl('device_desc', '设备描述')
-                ->clearable(),
-            amis()->NumberControl('sort', '排序')
-                ->min(0)
-                ->max(100)
-                ->size('xs')
-                ->value(10),
-            amis()->SwitchControl('state', '使用状态')
-                ->onText('开启')
-                ->offText('禁用')
-                ->value(true),
+            amis()->Tabs()->tabsMode('line')->tabs([
+                amis()->Tab()->title('单位主体')->icon('menu')->body([
+                    amis()->SelectControl('enterprise_id', '机构单位')
+                        ->options($this->service->getEnterpriseAll())
+                        ->value('${rel.enterprise_id}')
+                        ->searchable()
+                        ->clearable()
+                        ->required(),
+                    amis()->TreeSelectControl('facility_id', '设施主体')
+                        ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
+                        ->options($this->service->options())
+                        ->value('${rel.facility.id}')
+                        ->disabledOn('${!enterprise_id}')
+                        ->onlyLeaf()
+                        ->searchable()
+                        ->clearable()
+                        ->required(),
+                ]),
+                amis()->Tab()->title('设备信息')->icon('menu')->body([
+                    amis()->TextControl('device_name', '设备名称')
+                        ->placeholder('例:智能门禁机-进-1')
+                        ->clearable()
+                        ->required(),
+                    amis()->TreeSelectControl('device_brand', '设备品牌')
+                        ->options(Enum::brand('access'))
+                        ->placeholder('请选择品牌')
+                        ->clearable()
+                        ->required(),
+                    amis()->TextControl('device_model', '设备型号')
+                        ->placeholder('设备型号，如ET293')
+                        ->clearable()
+                        ->required(),
+                    amis()->InputGroupControl('device_sn', '设备编号')->body([
+                        amis()->TextControl('device_sn', '设备编号')
+                            ->placeholder('请填写设备编号，如sn')
+                            ->clearable()
+                            ->required(),
+                        amis()->SelectControl('device_pos', '安装位置')
+                            ->options(Enum::DevicePos)
+                            ->placeholder('安装位置')
+                            ->required(),
+                    ])->required(),
+                ]),
+                amis()->Tab()->title('设备状态')->body([
+                    amis()->NumberControl('sort', '排序')
+                        ->min(0)
+                        ->max(100)
+                        ->size('xs')
+                        ->value(10),
+                    amis()->SwitchControl('state', '使用状态')
+                        ->onText('开启')
+                        ->offText('禁用')
+                        ->value(true),
+                    amis()->TextareaControl('device_desc', '设备描述')
+                        ->clearable(),
+                ]),
+                amis()->Tab()->title('设备图片')->body([
+                    amis()->ImageControl('images', false)
+                        ->multiple(),
+                ]),
+            ]),
         ]);
     }
 
@@ -195,7 +207,7 @@ class AccessDeviceController extends AdminController
                         ->clearable()
                         ->required(),
                 ]),
-                amis()->Tab()->title('设备状态')->icon('menu')->body([
+                amis()->Tab()->title('设备状态')->body([
                     amis()->TextareaControl('device_desc', '设备描述')
                         ->clearable(),
                     amis()->NumberControl('sort', '排序')
@@ -214,6 +226,10 @@ class AccessDeviceController extends AdminController
                         ->value(true)
                         ->disabled()
                         ->static(false),
+                ]),
+                amis()->Tab()->title('现场图片')->body([
+                    amis()->ImageControl('images', false)
+                        ->multiple(),
                 ]),
             ]),
         ])->static();

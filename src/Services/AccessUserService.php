@@ -144,32 +144,46 @@ class AccessUserService extends AdminService
 
     public function userAll(): array
     {
-        $enterprise_id = request('enterprise_id');
-        $grade_id = request('grade_id');
-        $classes_id = request('classes_id');
-        $user_type = request('user_type');
-        if ($user_type == 'student') {
-            $is_boarder = request('is_boarder');
+        $request = request();
+
+        // 基础参数校验（建议使用 FormRequest 或 validate()）
+        $enterpriseId = $request->enterprise_id;
+        $gradeId = $request->grade_id;
+        $classesId = $request->classes_id;
+        $userType = $request->user_type;
+
+        if ($userType == 'student') {
+
+            $isBoarder = explode(',', (string) $request->is_boarder);
 
             return $this->query()
-                ->whereHas('student', function ($query) use ($enterprise_id, $grade_id, $classes_id, $is_boarder) {
-                    $query
-                        ->where('enterprise_id', $enterprise_id)
-                        ->where('grade_id', $grade_id)
-                        ->when($classes_id, function ($query) use ($classes_id) {
-                            $query->where('classes_id', $classes_id);
-                        })
-                        ->when(! is_null($is_boarder), function ($query) use ($is_boarder) {
-                            $query->where('is_boarder', $is_boarder);
-                        });
+                ->whereHas('student', function (Builder $builder) use ($enterpriseId, $gradeId, $classesId, $isBoarder) {
+                    $builder->where('enterprise_id', $enterpriseId)
+                        ->where('grade_id', $gradeId)
+                        ->when($classesId, fn (Builder $sub) => $sub->where('classes_id', $classesId))
+                        ->when($isBoarder, fn (Builder $sub) => $sub->whereIn('is_boarder', $isBoarder));
                 })
                 ->with('student')
                 ->where('state', 1)
-                ->get(['id as value', 'user_name as label', 'user_id', 'id_card', admin_raw("concat(user_name,'⟨',id_card,'⟩') as label_as")])
+                ->distinct()
+                ->get([
+                    'id as value',
+                    'user_name as label',
+                    'user_id',
+                    'id_card',
+                    // 推荐使用 DB::raw 并明确字段来源，避免 admin_raw 的潜在风险
+                    admin_raw("CONCAT(users.user_name, '⟨', users.id_card, '⟩') as label_as"),
+                ])
                 ->toArray();
+        } elseif ($userType == 'patriarch') {
+            return [];
+        } elseif ($userType == 'worker') {
+            return [];
+        } elseif ($userType == 'visitor') {
+            return [];
+        } else {
+            return [];
         }
-
-        return [];
     }
 
     /**

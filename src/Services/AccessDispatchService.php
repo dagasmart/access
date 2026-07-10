@@ -150,10 +150,8 @@ class AccessDispatchService extends AdminService
      */
     public function getEnterpriseAll(): array
     {
-        return (new EnterpriseService)->query()
-            ->select(['id as value', 'enterprise_name as label', 'id'])
-            ->get()
-            ->toArray();
+        $model = new EnterpriseService;
+        return $model->getEnterpriseAll();
     }
 
     /**

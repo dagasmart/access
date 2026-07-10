@@ -3,6 +3,7 @@
 namespace DagaSmart\Access\Models;
 
 use DagaSmart\Access\Enums\Enum;
+use DagaSmart\BizAdmin\Traits\ModuleMerIdTrait;
 use DagaSmart\Organization\Models\Enterprise;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -11,9 +12,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class AccessPermission extends Model
 {
+    // 一行代码，自动拥有读隔离和写自动填充能力
+    use ModuleMerIdTrait;
+
     protected $table = 'biz_access_permission';
 
     protected $primaryKey = 'id';
+
+    // 按需开启,模型表没有标记为空数组
+    protected $activeScopeFields = ['module', 'mer_id'];
+    protected $hidden = ['module', 'mer_id'];
 
     public $timestamps = true;
 

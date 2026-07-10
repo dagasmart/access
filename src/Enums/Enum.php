@@ -60,8 +60,8 @@ enum Enum
     public static function board_type(): array
     {
         return [
-            ['value' => 0, 'label' => '住校生'],
-            ['value' => 1, 'label' => '走读生'],
+            ['value' => 0, 'label' => '住校'],
+            ['value' => 1, 'label' => '走读'],
         ];
     }
 

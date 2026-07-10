@@ -45,14 +45,14 @@ class AccessDispatchController extends AdminController
             amis()->Grid()->columns([
                 amis()->Flex()->className('h-full')->items([
                     $this->tree(),
-                ])->direction('column')->set('md', 2),
+                ])->direction('column')->set('md', 3),
                 amis()->Flex()->className('h-full')->items([
                     $this->list(),
-                ])->set('md', 7),
+                ])->set('md', 6),
                 amis()->Flex()->className('h-full')->items([
                     $this->chart(),
                     $this->barChart(),
-                ])->direction('column'),
+                ])->direction('column')->set('md', 3),
             ]),
         );
     }
@@ -227,7 +227,7 @@ class AccessDispatchController extends AdminController
     public function form($isEdit = false): Form
     {
         return $this->baseForm()->data(['enterprise_id' => '${enterprise_id}'])->body([
-            amis()->SelectControl('enterprise_id', module_enterprise_alias())
+            amis()->SelectControl('enterprise_id', extend_trans('organization.enterprise_name'))
                 ->options($this->service->getEnterpriseAll())
                 ->value('${device.rel.enterprise_id}')
                 ->searchable()
@@ -292,7 +292,7 @@ class AccessDispatchController extends AdminController
                 ->visible(! $isEdit)
                 ->visibleOn('${(user_type === "student") && !!classes_id}'),
             amis()->SelectControl('access_user_id', '用户')
-                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||0,1}/all'))
+                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
                 ->disabledOn('${!classes_id}')
 //                ->selectMode('table')
 //                ->columns([
@@ -305,7 +305,6 @@ class AccessDispatchController extends AdminController
                 ->clearable()
                 ->checkAll()
                 ->multiple()
-                ->required()
                 ->visible(! $isEdit)
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!classes_id}'),
             amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
