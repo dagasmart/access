@@ -37,17 +37,48 @@ enum Enum
      *
      * @return array|array[]
      */
-    public static function user_type($disabled = true): array
+    public static function user_type($hidden = [], $disabled = []): array
     {
         $data = [];
+
         if (is_school_module()) {
-            $data[] = ['value' => 'student', 'label' => '学生', 'color' => 'info', 'disabled' => $disabled];
-            $data[] = ['value' => 'patriarch', 'label' => '家长', 'color' => 'warning', 'disabled' => $disabled];
-            $data[] = ['value' => 'worker', 'label' => '教师', 'color' => 'success', 'disabled' => $disabled];
+            $data[] = [
+                'value' => 'student',
+                'label' => '学生',
+                'color' => 'info',
+                'disabled' => in_array('student', $disabled),
+                'hidden' => in_array('student', $hidden),
+            ];
+            $data[] = [
+                'value' => 'patriarch',
+                'label' => '家长',
+                'color' => 'warning',
+                'disabled' => in_array('patriarch', $disabled),
+                'hidden' => in_array('patriarch', $hidden),
+            ];
+            $data[] = [
+                'value' => 'worker',
+                'label' => '教师',
+                'color' => 'success',
+                'disabled' => in_array('worker', $disabled),
+                'hidden' => in_array('worker', $hidden),
+            ];
         } else {
-            $data[] = ['value' => 'worker', 'label' => '员工', 'color' => 'success', 'disabled' => $disabled];
+            $data[] = [
+                'value' => 'worker',
+                'label' => '员工',
+                'color' => 'success',
+                'disabled' => in_array('worker', $disabled),
+                'hidden' => in_array('worker', $hidden),
+            ];
         }
-        $data[] = ['value' => 'visitor', 'label' => '访客', 'color' => 'default'];
+        $data[] = [
+            'value' => 'visitor',
+            'label' => '访客',
+            'color' => 'default',
+            'disabled' => in_array('visitor', $disabled),
+            'hidden' => in_array('visitor', $hidden),
+        ];
 
         return $data;
     }

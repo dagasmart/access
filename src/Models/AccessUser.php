@@ -2,7 +2,10 @@
 
 namespace DagaSmart\Access\Models;
 
+use DagaSmart\BizAdmin\Traits\ModuleMerIdTrait;
+use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
 use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
+use DagaSmart\Organization\Models\EnterprisePatriarchStudent;
 use DagaSmart\Organization\Models\Worker;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -11,9 +14,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class AccessUser extends Model
 {
+    // 一行代码，自动拥有读隔离和写自动填充能力
+    use ModuleMerIdTrait;
+
     protected $table = 'biz_access_user';
 
     protected $primaryKey = 'id';
+
+    // 按需开启,模型表没有标记为空数组
+    protected $activeScopeFields = ['module', 'mer_id'];
+    protected $hidden = ['module', 'mer_id'];
 
     protected $casts = [
         'updated_at' => 'datetime',
@@ -50,10 +60,17 @@ class AccessUser extends Model
 
     public function rel(): HasOne
     {
-        if ($this->user_type == 'worker') {
-            return $this->hasOne(Worker::class, 'id', 'worker_id');
-        } else {
+
+        if ($this->user_type == 'student') {
             return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
+        }
+        if ($this->user_type == 'patriarch') {
+            return $this->hasOne(EnterprisePatriarchStudent::class, 'patriarch_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
+        }
+        if ($this->user_type == 'worker') {
+            return $this->hasOne(EnterpriseDepartmentJobWorker::class, 'worker_id', 'user_id');
+        } else {
+            return $this->hasOne(static::class, 'id', 'user_id');
         }
     }
 }

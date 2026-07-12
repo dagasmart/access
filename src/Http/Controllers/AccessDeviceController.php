@@ -46,22 +46,27 @@ class AccessDeviceController extends AdminController
                     ->copyable()
                     ->width(150),
                 amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
-                    ->searchable([
-                        'name' => 'enterprise_id',
-                        'type' => 'select',
-                        'multiple' => false,
-                        'searchable' => true,
-                        'options' => $this->service->getEnterpriseAll(),
-                    ])
+                    ->searchable(
+                        amis()->FormControl()->body([
+                            amis()->SelectControl('enterprise_id', '机构单位')
+                                ->options($this->service->getEnterpriseAll())
+                                ->placeholder('请选择机构单位')
+                                ->searchable()
+                                ->clearable(),
+                            amis()->TreeSelectControl('facility_id', '设施主体')
+                                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/facility/options'))
+                                ->disabledOn('${!enterprise_id}')
+                                ->placeholder('请选择设施主体')
+                                ->onlyChildren()
+                                ->onlyLeaf(false)
+                                ->cascade()
+                                ->resetValue()
+                                ->multiple()
+                                ->searchable(),
+                        ])->className('w-72')
+                    )
                     ->width(200),
                 amis()->TableColumn('rel.facility.level_name', '设施主体')
-                    ->searchable([
-                        'name' => 'facility_id',
-                        'type' => 'tree-select',
-                        'multiple' => true,
-                        'source' => admin_url('biz/access/enterprise/${enterprise_id||0}/facility/options'),
-                        'options' => $this->service->options(),
-                    ])
                     ->width(200),
                 amis()->TableColumn('device_pos', '安装位置')
                     ->searchable([
@@ -122,7 +127,8 @@ class AccessDeviceController extends AdminController
                         ->options($this->service->options())
                         ->value('${rel.facility.id}')
                         ->disabledOn('${!enterprise_id}')
-                        ->onlyLeaf()
+                        ->cascade()
+                        ->onlyLeaf(true)
                         ->searchable()
                         ->clearable()
                         ->required(),

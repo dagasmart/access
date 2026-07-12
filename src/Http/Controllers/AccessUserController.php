@@ -4,6 +4,7 @@ namespace DagaSmart\Access\Http\Controllers;
 
 use DagaSmart\Access\Enums\Enum;
 use DagaSmart\Access\Services\AccessUserService;
+use DagaSmart\BizAdmin\Renderers\DialogAction;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
@@ -26,6 +27,7 @@ class AccessUserController extends AdminController
             ->headerToolbar([
                 $this->createButton('dialog'),
                 ...$this->baseHeaderToolBar(),
+                $this->importAction('put:biz/access/user/import'),
             ])
             ->autoGenerateFilter()
             ->affixHeader()
@@ -87,7 +89,7 @@ class AccessUserController extends AdminController
                     ]),
                 amis()->TableColumn('user_type', '用户类型')
                     ->searchable(
-                        amis()->SelectControl('user_type')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
+                        amis()->SelectControl('user_type')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
                     )
                     ->set('type', 'select')
                     ->set('options', Enum::user_type())
@@ -137,7 +139,7 @@ class AccessUserController extends AdminController
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()
                             ->RadiosControl('user_type', '用户类型')
-                            ->options(Enum::user_type())
+                            ->options(Enum::user_type(['student', 'patriarch', 'worker']))
                             ->value('visitor')
                             ->disabled($isEdit)
                             ->visible(! $isEdit),
@@ -145,7 +147,7 @@ class AccessUserController extends AdminController
                     amis()->Divider()->lineStyle('dashed')->visible(! $isEdit),
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
-                            amis()->StaticExactControl('user_id', 'ID')->visibleOn('${id}')->copyable(),
+                            amis()->StaticExactControl('id', 'ID')->visibleOn('${id}')->copyable(),
                             amis()->TagControl('user_type', '用户类型')
                                 ->options(Enum::user_type())
                                 ->static('${user_type !== "visitor"}')
@@ -171,15 +173,19 @@ class AccessUserController extends AdminController
                                     'matchRegexp' => '/^[\\d|*]{17}[\\dXx]$/i',
                                 ])
                                 ->validationErrors([
-                                    'matchRegexp' => '请输入有效的身份证号码',
+                                    'matchRegexp' => '请输入有效的中国大陆身份证号码',
                                 ])
                                 ->hidden($isEdit)
+                                ->required(),
+                            amis()->TextControl('mobile', '手机号码')
+                                ->validations(['matchRegexp' => '/^1[3-9][\\d|*]{9}$/'])
+                                ->validationErrors(['matchRegexp' => '请输入有效的中国大陆手机号码'])
                                 ->required(),
                             amis()->SelectControl('enterprise_id', module_enterprise_alias())
                                 ->options($this->service->getEnterpriseAll())
                                 ->hidden($isEdit)
                                 ->required(),
-                            amis()->SwitchControl('state', '用户状态')
+                            amis()->SwitchControl('state', '核验状态')
                                 ->onText('开启')
                                 ->offText('禁用')
                                 ->value(1),
@@ -262,11 +268,10 @@ class AccessUserController extends AdminController
                 amis()->Tab()->title('用户信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
-                            amis()->StaticExactControl('user_id', 'ID')->visibleOn('${id}')->copyable(),
+                            amis()->StaticExactControl('id', 'ID')->visibleOn('${id}')->copyable(),
                             amis()->TagControl('user_type', '用户类型')
                                 ->options(Enum::user_type())
-                                ->static('${user_type !== "visitor"}')
-                                ->disabledOn('${user_type !== "visitor"}'),
+                                ->disabled(),
                             amis()->StaticExactControl(false, '用户姓名')
                                 ->value('${user_name}')
                                 ->description('<span class=text-red-300>${id_card}</span>')
@@ -326,6 +331,104 @@ class AccessUserController extends AdminController
     public function userAll()
     {
         return $this->service->userAll();
+    }
+
+    public function getAccessUser()
+    {
+        return $this->service->getAccessUser();
+    }
+
+    public function importAction($api = null): DialogAction
+    {
+        return amis()->DialogAction()->label('一键导入')->icon('upload')->dialog(
+            amis()->Dialog()->title('一键导入')->body([
+                amis()->Alert()->showCloseButton()->body('请根据实际情况选择合适的导入对象信息'),
+                amis()->Form()->mode('horizontal')->api($api)->body([
+                    amis()->Flex()->items([
+                        amis()->RadiosControl('user_type', '用户类型')
+                            ->options(Enum::user_type(['visitor']))
+                            ->clearable()
+                            ->required(),
+                        amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                            ->options($this->service->getEnterpriseAll())
+                            ->visibleOn('${user_type}')
+                            ->clearValueOnSourceChange()
+                            ->clearable()
+                            ->required(),
+                        amis()->TreeSelectControl('grade_id', '年级')
+                            ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade'))
+                            ->visibleOn('${enterprise_id && user_type && user_type !== "worker"}')
+                            ->clearValueOnSourceChange()
+                            ->clearValueOnHidden()
+                            ->clearable()
+                            ->searchable()
+                            ->onlyLeaf()
+                            ->required(),
+                        amis()->SelectControl('classes_id', '班级')
+                            ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                            ->visibleOn('${enterprise_id && grade_id && user_type && user_type !== "worker"}')
+                            ->clearValueOnSourceChange()
+                            ->clearValueOnHidden()
+                            ->clearable()
+                            ->searchable()
+                            ->required(),
+                        amis()->SelectControl('user_id', '学生')
+                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->visibleOn('${enterprise_id && grade_id && classes_id && user_type && user_type == "student"}')
+                            ->clearValueOnSourceChange()
+                            ->clearValueOnHidden()
+                            ->maxTagCount(5)
+                            ->multiple()
+                            ->checkAll()
+                            ->clearable()
+                            ->searchable(),
+                        amis()->SelectControl('user_id', '家长')
+                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->visibleOn('${enterprise_id && grade_id && classes_id && user_type && user_type == "patriarch"}')
+                            ->clearValueOnSourceChange()
+                            ->clearValueOnHidden()
+                            ->maxTagCount(5)
+                            ->multiple()
+                            ->checkAll()
+                            ->clearable()
+                            ->searchable(),
+                        amis()->TreeSelectControl('department_id', '部门')
+                            ->source(admin_url('biz/worker/${enterprise_id||0}/department/data'))
+                            ->visibleOn('${enterprise_id && user_type && user_type == "worker"}')
+                            ->onlyChildren(false)
+                            ->onlyLeaf(false)
+                            ->hideNodePathLabel()
+                            ->searchable()
+                            ->required(),
+                        amis()->SelectControl('user_id', is_school_module() ? '教师' : '员工')
+                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->visibleOn('${enterprise_id && department_id && user_type && user_type == "worker"}')
+                            ->clearValueOnSourceChange()
+                            ->clearValueOnHidden()
+                            ->maxTagCount(5)
+                            ->multiple()
+                            ->checkAll()
+                            ->clearable()
+                            ->searchable(),
+                        amis()->CheckboxesControl('open_type', '开锁模式')
+                            ->options(Enum::open_type())
+                            ->visibleOn('${enterprise_id && user_type}')
+                            ->defaultCheckAll()
+                            ->required(),
+                    ])->direction('column')->style(['gap' => 0]),
+                ]),
+            ])
+            // ->actions()
+        );
+    }
+
+    public function userImport()
+    {
+        $res = $this->service->userImport();
+        if ($res) {
+            return $this->response()->successMessage('导入成功');
+        }
+        return $this->response()->fail('导入失败，请检查');
     }
 
     protected function rowSetAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
@@ -464,7 +567,7 @@ class AccessUserController extends AdminController
                                 ->set('required', true),
                             amis()->TableColumn('facility_id', '设施主体')
                                 ->set('type', 'select')
-                                ->set('options', $this->service->options())
+                                // ->set('options', $this->service->options())
                                 ->set('static', false)
                                 ->set('required', true),
                             amis()->TableColumn('device_id', '设备')

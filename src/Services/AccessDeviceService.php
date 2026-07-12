@@ -19,7 +19,18 @@ class AccessDeviceService extends AdminService
 
     public function loadRelations($query): void
     {
-        $query->whereHas('rel')->with(['rel']);
+        $enterprise_id = request()->enterprise_id ?? null;
+        $facility_id = request()->facility_id ?? null;
+
+        $query->whereHas('rel', function (Builder $builder) use ($enterprise_id, $facility_id) {
+            $builder
+                ->when($enterprise_id, function ($query) use ($enterprise_id) {
+                    $query->where('enterprise_id', $enterprise_id);
+                })
+                ->when($facility_id, function ($query) use ($facility_id) {
+                    $query->where('facility_id', explode(',', (string) $facility_id));
+                });
+        })->with(['rel']);
     }
 
     public function sortable($query): void
@@ -33,8 +44,9 @@ class AccessDeviceService extends AdminService
 
     public function searchable($query): void
     {
-        parent::searchable($query);
         $query->where(['device_type' => 'access']); // 只查门禁设备
+
+        parent::searchable($query);
     }
 
     /**
@@ -112,6 +124,11 @@ class AccessDeviceService extends AdminService
     {
         $id = request()->id;
         $enterprise_id = request()->enterprise_id;
+
+        if (empty($enterprise_id)) {
+            return [];
+        }
+
         $data = $this->query()->from('biz_facility as a')
             ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
