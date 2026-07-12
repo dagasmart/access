@@ -35,9 +35,11 @@ enum Enum
     /**
      * 用户类型
      *
-     * @return array|array[]
+     * @param array $hidden
+     * @param array $disabled
+     * @return array
      */
-    public static function user_type($hidden = [], $disabled = []): array
+    public static function user_type(array $hidden = [], array $disabled = []): array
     {
         $data = [];
 

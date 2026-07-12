@@ -149,10 +149,10 @@ class AccessDispatchController extends AdminController
 
                 amis()->TableColumn('user.user_type', '类型')
                     ->searchable(
-                        amis()->SelectControl('user_type')->options(Enum::user_type(false))->checkAll()->multiple()->clearable(),
+                        amis()->SelectControl('user_type')->options(Enum::user_type())->checkAll()->multiple()->clearable(),
                     )
                     ->set('type', 'input-tag')
-                    ->set('options', Enum::user_type(false))
+                    ->set('options', Enum::user_type())
                     ->set('multiple', true)
                     ->set('static', true),
 
@@ -265,7 +265,7 @@ class AccessDispatchController extends AdminController
                 ->clearable()
                 ->required(),
             amis()->RadiosControl('user_type', '用户类型')
-                ->options(Enum::user_type(false))
+                ->options(Enum::user_type())
                 ->value('${user.user_type}')
                 ->disabledOn('${!enterprise_id}')
                 ->visibleOn('${!!enterprise_id}')
@@ -336,7 +336,7 @@ class AccessDispatchController extends AdminController
             amis()->StaticExactControl('device_name', '设备名称')->value('${device.device_name}'),
             amis()->StaticExactControl('device_sn', '设备编号')->value('${device.device_sn}')->copyable(),
             amis()->TagControl('user_type', '用户类型')
-                ->options(Enum::user_type(false))
+                ->options(Enum::user_type())
                 ->value('${user.user_type}')
                 ->static(),
             amis()->TreeSelectControl('grade_id', '年级')
