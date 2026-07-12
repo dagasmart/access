@@ -3,10 +3,10 @@
 namespace DagaSmart\Access\Models;
 
 use DagaSmart\BizAdmin\Traits\ModuleMerIdTrait;
+use DagaSmart\Organization\Models\Enterprise;
 use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
 use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
 use DagaSmart\Organization\Models\EnterprisePatriarchStudent;
-use DagaSmart\Organization\Models\Worker;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -23,6 +23,7 @@ class AccessUser extends Model
 
     // 按需开启,模型表没有标记为空数组
     protected $activeScopeFields = ['module', 'mer_id'];
+
     protected $hidden = ['module', 'mer_id'];
 
     protected $casts = [
@@ -30,6 +31,8 @@ class AccessUser extends Model
     ];
 
     public $timestamps = true;
+
+    protected $appends = ['rel'];
 
     public function getIdCardAttribute($value): string
     {
@@ -53,24 +56,39 @@ class AccessUser extends Model
         $this->attributes['user_avatar'] = admin_image_path($value);
     }
 
+    // 动态访问器（仅用于已加载模型的属性访问）
+    public function getRelAttribute()
+    {
+        return match ($this->user_type) {
+            'student' => $this->student,
+            'patriarch' => $this->patriarch,
+            'worker' => $this->worker,
+            'visitor' => $this->visitor,
+            default => null,
+        };
+    }
+
     public function student(): HasOne
     {
-        return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id');
+        return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')
+            ->with(['enterprise', 'grade', 'classes']);
     }
 
-    public function rel(): HasOne
+    public function patriarch(): HasOne
     {
-
-        if ($this->user_type == 'student') {
-            return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
-        }
-        if ($this->user_type == 'patriarch') {
-            return $this->hasOne(EnterprisePatriarchStudent::class, 'patriarch_id', 'user_id')->with(['enterprise', 'grade', 'classes']);
-        }
-        if ($this->user_type == 'worker') {
-            return $this->hasOne(EnterpriseDepartmentJobWorker::class, 'worker_id', 'user_id');
-        } else {
-            return $this->hasOne(static::class, 'id', 'user_id');
-        }
+        return $this->hasOne(EnterprisePatriarchStudent::class, 'patriarch_id', 'user_id')
+            ->with(['enterprise', 'patriarch']);
     }
+
+    public function worker(): HasOne
+    {
+        return $this->hasOne(EnterpriseDepartmentJobWorker::class, 'worker_id', 'user_id')
+            ->with(['enterprise', 'department']);
+    }
+
+    public function visitor(): HasOne
+    {
+        return $this->hasOne(Enterprise::class, 'id', 'enterprise_id');
+    }
+
 }

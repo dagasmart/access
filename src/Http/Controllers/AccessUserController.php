@@ -35,7 +35,7 @@ class AccessUserController extends AdminController
             ->footable(['expand' => 'first'])
             ->autoFillHeight(true)
             ->columns([
-                amis()->TableColumn('user_id', 'ID')
+                amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed', 'left'),
                 amis()->TableColumn('user_card', '用户')
@@ -44,10 +44,10 @@ class AccessUserController extends AdminController
                         amis()->TextControl('id_card', '身份证号')->placeholder('请输入查找的身份证号')->clearable(),
                     ]))
                     ->set('type', 'tpl')
-                    ->set('tpl', '${user_name}<h5 class="m-0 mt-1.5 text-secondary">${id_card}</h5>')
+                    ->set('tpl', '${user_name}<h5 class="m-0 mt-1.5 text-secondary">${id_card}</h5><h5 class="m-0 mt-1.5 text-secondary">${user_id}</h5>')
                     ->align('center')
                     ->width(100),
-                amis()->TableColumn('rel.enterprise.enterprise_name', '单位信息')
+                amis()->TableColumn('rel.enterprise.enterprise_name', module_enterprise_alias().'信息')
                     ->searchable([
                         'name' => 'enterprise_id',
                         'type' => 'select',
@@ -56,7 +56,7 @@ class AccessUserController extends AdminController
                         'options' => $this->service->getEnterpriseAll(),
                     ])
                     ->set('type', 'tpl')
-                    ->set('tpl', '${rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">${rel.grade.grade_name}</h5><h5 class="m-0 mt-1.5 text-secondary">${rel.classes.classes_name}</h5>')
+                    ->set('tpl', '${rel.enterprise.enterprise_name||rel.enterprise_name}<h5 class="m-0 mt-1 text-secondary">${rel.grade.grade_name || rel.department.department_name}</h5><h5 class="m-0 mt-1.5 text-secondary">${rel.classes.classes_name}</h5>')
                     ->width(200),
                 amis()->TableColumn('user_avatar', '照片')
                     ->set('type', 'avatar')

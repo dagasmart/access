@@ -23,14 +23,7 @@ class AccessUserService extends AdminService
 
     public function loadRelations($query): void
     {
-        $query->with('rel');
-        //        $query->whereHas('rel', function ($query) {
-        //            $mer_id = admin_mer_id();
-        //            $query->where('module', admin_current_module())
-        //                ->when($mer_id, function ($query) use ($mer_id) {
-        //                    $query->where('mer_id', $mer_id);
-        //                });
-        //        })->with(['rel']);
+        $test = 1;
     }
 
     public function sortable($query): void
@@ -45,50 +38,38 @@ class AccessUserService extends AdminService
     public function searchable($query): void
     {
         parent::searchable($query);
-        // $query->where(['device_type' => 'access']); //只查门禁设备
     }
 
-    public function list(): array
-    {
-        $list = parent::list();
-        if ($list['items']) {
-            foreach ($list['items'] as &$item) {
-                if ($item['user_type'] == 'patriarch') {
-                    $item['rel'] = 111111111111;
-                }
-                $item['rel'] = 111111111111;
-            }
-        }
 
-        return $list;
-    }
 
     /**
      * 保存前
      */
     public function saving(&$data, $primaryKey = null): void
     {
+        $user_type = $data['user_type'] ?? null;
         $enterprise_id = $data['enterprise_id'] ?? null;
+
         // 身份证号
-        admin_abort_if(empty($data['id_card']), '请输入有效身份证号');
         $id_card = $data['id_card'] ?? null;
-        if ($id_card) {
-            if (strpos($id_card, '*')) {
-                unset($data['id_card']);
-            } else {
-                // 身份证号校验
-                identifyByIdCard($id_card);
-                // 是否已存在
-                $id = $data['id'] ?? null;
-                $exists = $this->query()
-                    ->where(['enterprise_id' => $enterprise_id])
-                    ->where(['id_card' => $id_card])
-                    ->when($id, function ($query) use ($id) {
-                        return $query->where('id', '<>', $id);
-                    })
-                    ->exists();
-                admin_abort_if($exists, '身份证号(${id_card})已存在，请检查');
-            }
+        admin_abort_if(empty($id_card), '请输入有效身份证号');
+
+        if (strpos($id_card, '*')) {
+            unset($data['id_card']);
+        } else {
+            // 身份证号校验
+            identifyByIdCard($id_card);
+            // 是否已存在
+            $id = $data['id'] ?? null;
+            $exists = $this->query()
+                ->where(['enterprise_id' => $enterprise_id])
+                ->where(['id_card' => $id_card])
+                ->when($id, function ($query) use ($id) {
+                    return $query->where('id', '<>', $id);
+                })
+                ->where('user_type', $user_type)
+                ->exists();
+            admin_abort_if($exists, '身份证号(${id_card})已存在，请检查');
         }
     }
 
@@ -99,21 +80,8 @@ class AccessUserService extends AdminService
      */
     public function saved($model, $isEdit = false): void
     {
-        parent::saved($model, $isEdit);
         $request = request()->all();
-        if ($model->id && ! empty($request['enterprise_id']) && ! empty($request['facility_id'])) {
-            $data = [
-                'enterprise_id' => $request['enterprise_id'],
-                'facility_id' => $request['facility_id'],
-                'device_id' => $model->id,
-            ];
-            admin_transaction(function () use ($data) {
-                if ($data['device_id']) {
-                    EnterpriseFacilityDevice::query()->where($data)->delete();
-                }
-                EnterpriseFacilityDevice::query()->insert($data);
-            });
-        }
+
     }
 
     /**
