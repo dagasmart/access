@@ -10,12 +10,12 @@ enum Enum
      * 权限码
      */
     const array PERMISSION_CODE = [
-        ['value' => 0, 'label' => '初级'],
-        ['value' => 1, 'label' => '一级'],
-        ['value' => 2, 'label' => '二级'],
-        ['value' => 3, 'label' => '三级'],
-        ['value' => 4, 'label' => '四级'],
-        ['value' => 5, 'label' => '五级'],
+        ['value' => 0, 'label' => '通用码'],
+        ['value' => 1, 'label' => '一类码'],
+        ['value' => 2, 'label' => '二类码'],
+        ['value' => 3, 'label' => '三类级'],
+        ['value' => 4, 'label' => '四类级'],
+        ['value' => 5, 'label' => '五类级'],
     ];
 
     /**

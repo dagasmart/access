@@ -28,9 +28,9 @@ class AccessLogController extends AdminController
                 amis()->TableColumn('id', 'ID')
                     ->sortable()
                     ->set('fixed', 'left'),
-                amis()->TableColumn('user.user_avatar', '照片')
+                amis()->TableColumn('user.avatar', '照片')
                     ->set('type', 'avatar')
-                    ->set('src', '${user.user_avatar}')
+                    ->set('src', '${user.avatar}')
                     ->set('size', 'small')
                     ->set('fixed', 'left'),
                 amis()->TableColumn('user_name', '用户姓名')

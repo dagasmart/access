@@ -117,9 +117,9 @@ class AccessDispatchController extends AdminController
                     ->align('center')
                     ->width(100),
 
-                amis()->TableColumn('user.user_avatar', '照片')
+                amis()->TableColumn('user.avatar', '照片')
                     ->set('type', 'avatar')
-                    ->set('src', '${user.user_avatar}')
+                    ->set('src', '${user.avatar}')
                     ->set('size', 60)
                     ->set('static', true)
                     ->set('onError', 'return true;')
@@ -136,7 +136,7 @@ class AccessDispatchController extends AdminController
                                         'showCloseButton' => false, // 显示关闭
                                         'body' => [
                                             amis()->Image()
-                                                ->src('${user.user_avatar}')
+                                                ->src('${user.avatar}')
                                                 ->defaultImage(url(admin_config('admin.default_image')))
                                                 ->width('100%')
                                                 ->height('100%'),

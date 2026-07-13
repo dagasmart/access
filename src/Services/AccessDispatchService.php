@@ -238,7 +238,7 @@ class AccessDispatchService extends AdminService
             'per_name' => strval($row->user->user_name),
             'idcardNum' => base64_decode($row->user->id_card_enc),
             'img_data' => '',
-            'img_url' => admin_image_url($row->user->user_avatar, 800),
+            'img_url' => admin_image_url($row->user->avatar, 800),
             'idcardper' => base64_decode($row->user->id_card_enc),
             's_time' => time(),
             'e_time' => strtotime('+1 year'),

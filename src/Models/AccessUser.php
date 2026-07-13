@@ -34,9 +34,12 @@ class AccessUser extends Model
 
     protected $appends = ['rel'];
 
-    public function getIdCardAttribute($value): string
+    /**
+     * 身份证号脱敏
+     */
+    public function getIdCardAttribute($value): ?string
     {
-        return admin_sensitive($value, 6, 8);
+        return admin_sensitive($value, 6, 8) ?? null;
     }
 
     public function setIdCardAttribute($value): void
@@ -46,6 +49,14 @@ class AccessUser extends Model
         }
     }
 
+    /**
+     * 手机号脱敏
+     */
+    public function getMobileAttribute($value): ?string
+    {
+        return admin_sensitive($value, 3, 5) ?? null;
+    }
+
     public function getUserAvatarAttribute($value): ?string
     {
         return admin_image_url($value);
@@ -53,7 +64,7 @@ class AccessUser extends Model
 
     public function setUserAvatarAttribute($value): void
     {
-        $this->attributes['user_avatar'] = admin_image_path($value);
+        $this->attributes['avatar'] = admin_image_path($value);
     }
 
     // 动态访问器（仅用于已加载模型的属性访问）
@@ -90,5 +101,4 @@ class AccessUser extends Model
     {
         return $this->hasOne(Enterprise::class, 'id', 'enterprise_id');
     }
-
 }

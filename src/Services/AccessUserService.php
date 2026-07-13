@@ -326,15 +326,16 @@ class AccessUserService extends AdminService
                 ->map(fn ($item, $index) => [
                     'user_id' => $item->student?->id,
                     'user_name' => $item->student?->student_name,
-                    'user_avatar' => $item->student?->avatar,
+                    'avatar' => $item->student?->avatar,
                     'user_type' => $user_type,
                     'id_card' => base64_decode($item->student?->id_card_enc),
-                    'mobile' => $item->student?->mobile,
+                    'mobile' => base64_decode($item->student?->mobile_enc),
                     'enterprise_id' => $item->enterprise_id,
                     'open_type' => $open_type,
                     'state' => 1,
                     'sort' => intval($max + $index + 1),
                     'id_card_enc' => $item->student?->id_card_enc,
+                    'mobile_enc' => $item->student?->mobile_enc,
                     'module' => $item->module,
                     'mer_id' => $item->mer_id,
                 ]);
@@ -364,15 +365,16 @@ class AccessUserService extends AdminService
                 ->map(fn ($item, $index) => [
                     'user_id' => $item->patriarch?->id,
                     'user_name' => $item->patriarch?->patriarch_name,
-                    'user_avatar' => $item->patriarch?->avatar,
+                    'avatar' => $item->patriarch?->avatar,
                     'user_type' => $user_type,
                     'id_card' => base64_decode($item->patriarch?->id_card_enc),
-                    'mobile' => $item->patriarch?->mobile,
+                    'mobile' => base64_decode($item->patriarch?->mobile_enc),
                     'enterprise_id' => $item->enterprise_id,
                     'open_type' => $open_type,
                     'state' => 1,
                     'sort' => intval($max + $index + 1),
                     'id_card_enc' => $item->patriarch?->id_card_enc,
+                    'mobile_enc' => $item->patriarch?->mobile_enc,
                     'module' => $item->module,
                     'mer_id' => $item->mer_id,
                 ]);
@@ -392,15 +394,16 @@ class AccessUserService extends AdminService
                 ->map(fn ($item, $index) => [
                     'user_id' => $item->worker?->id,
                     'user_name' => $item->worker?->worker_name,
-                    'user_avatar' => $item->worker?->avatar,
+                    'avatar' => $item->worker?->avatar,
                     'user_type' => $user_type,
                     'id_card' => base64_decode($item->worker?->id_card_enc),
-                    'mobile' => $item->worker?->mobile,
+                    'mobile' => base64_decode($item->worker?->mobile_enc),
                     'enterprise_id' => $item->enterprise_id,
                     'open_type' => $open_type,
                     'state' => 1,
                     'sort' => intval($max + $index + 1),
                     'id_card_enc' => $item->worker?->id_card_enc,
+                    'mobile_enc' => $item->worker?->mobile_enc,
                     'module' => $item->module,
                     'mer_id' => $item->mer_id,
                 ]);
@@ -410,7 +413,7 @@ class AccessUserService extends AdminService
             $this->query()->upsert(
                 $record->toArray(),
                 uniqueBy: ['user_id', 'user_type', 'enterprise_id', 'module', 'mer_id'], // 冲突判断字段
-                update: ['id_card', 'mobile', 'open_type', 'state'] // 冲突时更新的字段
+                update: ['id_card', 'id_card_enc', 'mobile', 'mobile_enc', 'open_type', 'state'] // 冲突时更新的字段
             );
 
             return true;

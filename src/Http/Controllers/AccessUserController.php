@@ -58,9 +58,9 @@ class AccessUserController extends AdminController
                     ->set('type', 'tpl')
                     ->set('tpl', '${rel.enterprise.enterprise_name||rel.enterprise_name}<h5 class="m-0 mt-1 text-secondary">${rel.grade.grade_name || rel.department.department_name}</h5><h5 class="m-0 mt-1.5 text-secondary">${rel.classes.classes_name}</h5>')
                     ->width(200),
-                amis()->TableColumn('user_avatar', '照片')
+                amis()->TableColumn('avatar', '照片')
                     ->set('type', 'avatar')
-                    ->set('src', '${user_avatar}')
+                    ->set('src', '${avatar}')
                     ->set('size', 60)
                     ->set('static', true)
                     ->set('onError', 'return true;')
@@ -77,7 +77,7 @@ class AccessUserController extends AdminController
                                         'showCloseButton' => false, // 显示关闭
                                         'body' => [
                                             amis()->Image()
-                                                ->src('${user_avatar}')
+                                                ->src('${avatar}')
                                                 ->defaultImage(url(admin_config('admin.default_image')))
                                                 ->width('100%')
                                                 ->height('100%'),
@@ -105,7 +105,7 @@ class AccessUserController extends AdminController
                 amis()->TableColumn('state', '状态')
                     ->set('type', 'switch')
                     ->set('onText', '正常')
-                    ->set('offText', '停用'),
+                    ->set('offText', '禁用'),
                 amis()->TableColumn('sort', '排序')->sortable(),
                 amis()->TableColumn('updated_at', '更新时间')
                     ->searchable(
@@ -153,14 +153,19 @@ class AccessUserController extends AdminController
                                 ->static('${user_type !== "visitor"}')
                                 ->disabledOn('${user_type !== "visitor"}')
                                 ->visible($isEdit),
-                            amis()->StaticExactControl(false, '用户姓名')
-                                ->value('${user_name}')
-                                ->description('<span class=text-red-300>${id_card}</span>')
-                                ->static('${user_type !== "visitor"}')
+                            amis()->InputGroupControl(false, '用户姓名')
+                                ->body([
+                                    amis()->StaticExactControl()
+                                        ->value('${user_name}'),
+                                    amis()->StaticExactControl()
+                                        ->value('${id_card}')
+                                        ->copyable(['content' => '${id_card_enc | base64Decode}']),
+                                ])
+                                ->description('✆ <span class=text-follow>${mobile_enc | base64Decode}</span>')
                                 ->visible($isEdit),
                             amis()->StaticExactControl(false, module_enterprise_alias())
                                 ->value('${rel.enterprise.enterprise_name}')
-                                ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>${rel?"/":""}<span class=text-blue-300>${rel.classes.classes_name}</span>')
+                                ->description('<span class=text-follow>${rel.grade.grade_name || rel.department.department_name}</span>${rel.classes?"/":""}<span class=text-follow-dark>${rel.classes.classes_name}</span>')
                                 ->visible($isEdit)->visibleOn('${user_type !== "visitor"}'),
 
                             // ================以下新增时生效==================
@@ -180,19 +185,20 @@ class AccessUserController extends AdminController
                             amis()->TextControl('mobile', '手机号码')
                                 ->validations(['matchRegexp' => '/^1[3-9][\\d|*]{9}$/'])
                                 ->validationErrors(['matchRegexp' => '请输入有效的中国大陆手机号码'])
+                                ->visible(! $isEdit)
                                 ->required(),
                             amis()->SelectControl('enterprise_id', module_enterprise_alias())
                                 ->options($this->service->getEnterpriseAll())
                                 ->hidden($isEdit)
                                 ->required(),
-                            amis()->SwitchControl('state', '核验状态')
-                                ->onText('开启')
+                            amis()->SwitchControl('state', '状态')
+                                ->onText('正常')
                                 ->offText('禁用')
                                 ->value(1),
 
                         ])->className('border-r border-dashed pr-5'),
                         amis()->GroupControl()->body([
-                            amis()->ImageControl('user_avatar')
+                            amis()->ImageControl('avatar')
                                 ->thumbRatio('1:1')
                                 ->thumbMode('cover h-full rounded-md overflow-hidden')
                                 ->className(['overflow-hidden' => true, 'h-full' => true])
@@ -269,22 +275,30 @@ class AccessUserController extends AdminController
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
                             amis()->StaticExactControl('id', 'ID')->visibleOn('${id}')->copyable(),
-                            amis()->TagControl('user_type', '用户类型')
+                            amis()->TagControl('user_type', '类型')
                                 ->options(Enum::user_type())
                                 ->disabled(),
-                            amis()->StaticExactControl(false, '用户姓名')
-                                ->value('${user_name}')
-                                ->description('<span class=text-red-300>${id_card}</span>')
-                                ->copyable()
-                                ->static('${user_type !== "visitor"}'),
+                            amis()->InputGroupControl(false, '用户')
+                                ->body([
+                                    amis()->StaticExactControl()
+                                        ->value('${user_name}'),
+                                    amis()->StaticExactControl()
+                                        ->value('${id_card}')
+                                        ->copyable(['content' => '${id_card_enc | base64Decode}']),
+                                ])
+                                ->description('✆ <span class=text-follow>${mobile_enc | base64Decode}</span>')
+                                ->visible('${user_type !== "visitor"}'),
                             amis()->StaticExactControl(false, module_enterprise_alias())
                                 ->value('${rel.enterprise.enterprise_name}')
-                                ->description('<span class=text-blue-300>${rel.grade.grade_name}</span>/<span class=text-blue-300>${rel.classes.classes_name}</span>'),
-
-                            amis()->DateTimeControl('updated_at', '创建时间')->valueFormat('YYYY-MM-DD HH:mm:ss')->value('+0hours'),
+                                ->description('<span class=text-follow>${rel.grade.grade_name || rel.department.department_name}</span>${rel.classes?"/":""}<span class=text-follow-dark>${rel.classes.classes_name}</span>'),
+                            amis()->SwitchControl('state', '状态')
+                                ->onText('正常')
+                                ->offText('禁用')
+                                ->disabled()
+                                ->static(false),
                         ])->className('border-r border-dashed pr-5'),
                         amis()->GroupControl()->body([
-                            amis()->ImageControl('user_avatar')
+                            amis()->ImageControl('avatar')
                                 ->thumbRatio('1:1')
                                 ->thumbMode('cover h-full rounded-md overflow-hidden')
                                 ->className(['overflow-hidden' => true, 'h-full' => true])
@@ -312,6 +326,9 @@ class AccessUserController extends AdminController
                             ->disabled()
                             ->static(false),
                     ]),
+                    amis()->DateTimeControl('updated_at', '更新时间')
+                        ->valueFormat('YYYY-MM-DD HH:mm:ss')
+                        ->value('+0hours'),
                 ]),
             ]),
 
@@ -428,6 +445,7 @@ class AccessUserController extends AdminController
         if ($res) {
             return $this->response()->successMessage('导入成功');
         }
+
         return $this->response()->fail('导入失败，请检查');
     }
 
@@ -487,7 +505,7 @@ class AccessUserController extends AdminController
                     amis()->SwitchControl()
                         ->name('state')
                         ->label('状态')
-                        ->onText('开启')
+                        ->onText('正常')
                         ->offText('禁用')
                         ->disabled(),
                 ]),
