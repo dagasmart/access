@@ -4,9 +4,9 @@ namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessUser;
 use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
-use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
 use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
 use DagaSmart\Organization\Models\EnterprisePatriarchStudent;
+use DagaSmart\Organization\Models\Visitor;
 use DagaSmart\Organization\Services\StudentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -40,7 +40,73 @@ class AccessUserService extends AdminService
         parent::searchable($query);
     }
 
+    /**
+     * 新增保存
+     */
+    public function store($data): bool
+    {
+        // 【稳定】1. 严格校验必填字段，避免后续 Undefined Index
+        $requiredKeys = ['id_card', 'user_name', 'user_type', 'enterprise_id'];
+        $validated = array_intersect_key($data, array_flip($requiredKeys));
+        admin_abort_if(
+            count($validated) !== count($requiredKeys),
+            '访客必要信息不完整: '.implode(',', array_diff($requiredKeys, array_keys($validated)))
+        );
 
+        $userId = $data['user_id'] ?? null;
+
+        // 【性能&稳定】2. 所有DB操作封装在单一事务中，消除TOCTOU竞态
+        return admin_transaction(function () use ($data, $validated, $userId) {
+            // 【稳定】3. 访客主表处理：事务内查询+锁定，防止并发删除/修改
+            if ($userId) {
+                $row = Visitor::query()->lockForUpdate()->find($userId);
+                admin_abort_if(! $row, '访客信息不存在');
+            } else {
+                // 【性能】4. updateOrCreate 原子操作替代 exists+insert/update
+                $row = Visitor::query()->updateOrCreate(
+                    ['id_card' => $validated['id_card']],
+                    [
+                        'visitor_name' => $validated['user_name'],
+                        'visitor_no' => gen_random_no('V'), // 安全编号生成
+                        'mobile' => $data['mobile'] ?? '',
+                        'sex' => identifySexById($validated['id_card'], true),
+                        'avatar' => $data['avatar'] ?? '',
+                        'is_verify' => $data['state'] ?? 0,
+                    ]
+                );
+            }
+
+            // 【安全】5. AES加密存储敏感数据 + HMAC哈希用于检索
+            $idCard = $validated['id_card'];
+            $mobile = $data['mobile'] ?? '';
+
+            $record = [
+                'user_id' => $row->id,
+                'user_name' => $validated['user_name'],
+                'avatar' => $data['avatar'] ?? '',
+                'user_type' => $validated['user_type'],
+                'id_card' => $idCard,
+                'mobile' => $mobile,
+                'enterprise_id' => $validated['enterprise_id'],
+                'open_type' => $data['open_type'] ?? '',
+                'state' => $data['state'] ?? 0,
+                'sort' => 255,
+                'id_card_enc' => base64_encrypt($idCard),
+                'mobile_enc' => base64_encrypt($mobile),
+                'module' => admin_current_module(),
+                'mer_id' => admin_mer_id(),
+            ];
+
+            // 【性能】6. upsert 必须依赖唯一索引，且 update 字段要完整
+            $this->query()->upsert(
+                [$record],
+                uniqueBy: ['user_id', 'user_type', 'enterprise_id', 'module', 'mer_id'],
+                update: ['user_name', 'avatar', 'id_card', 'id_card_enc', 'mobile', 'mobile_enc', 'open_type', 'state']
+            );
+
+            return true;
+        });
+    }
 
     /**
      * 保存前
@@ -419,5 +485,15 @@ class AccessUserService extends AdminService
             return true;
         });
 
+    }
+
+    public function AccessUserCheck($id_card): ?Visitor
+    {
+        $row = Visitor::query()->where(['id_card' => $id_card, 'is_verify' => 1])->first();
+        if ($row) {
+            $row->user_name = $row->visitor_name;
+        }
+
+        return $row;
     }
 }

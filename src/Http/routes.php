@@ -25,6 +25,8 @@ Route::group([
     $router->get('access/enterprise/{enterprise_id}/{grade_id}/{classes_id}/{department_id}/{user_type}/user', [Controllers\AccessUserController::class, 'getAccessUser']);
     $router->put('access/user/import', [Controllers\AccessUserController::class, 'userImport']);
 
+    $router->get('access/user/{id_card}/check', [Controllers\AccessUserController::class, 'AccessUserCheck']);
+
 
     $router->get('access/enterprise/{enterprise_id}/permission/all', [Controllers\AccessPermissionController::class, 'permissionAll']);
     $router->get('access/enterprise/{enterprise_id}/permission/{id}/code', [Controllers\AccessPermissionController::class, 'permissionCode']);

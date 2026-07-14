@@ -57,12 +57,12 @@ class AccessUser extends Model
         return admin_sensitive($value, 3, 5) ?? null;
     }
 
-    public function getUserAvatarAttribute($value): ?string
+    public function getAvatarAttribute($value): ?string
     {
         return admin_image_url($value);
     }
 
-    public function setUserAvatarAttribute($value): void
+    public function setAvatarAttribute($value): void
     {
         $this->attributes['avatar'] = admin_image_path($value);
     }

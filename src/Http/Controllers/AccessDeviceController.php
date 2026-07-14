@@ -67,7 +67,7 @@ class AccessDeviceController extends AdminController
                     )
                     ->width(200),
                 amis()->TableColumn('rel.facility.level_name', '设施主体')
-                    ->width(200),
+                    ->width(150),
                 amis()->TableColumn('device_pos', '安装位置')
                     ->searchable([
                         'name' => 'device_pos',
@@ -151,7 +151,22 @@ class AccessDeviceController extends AdminController
                         amis()->TextControl('device_sn', '设备编号')
                             ->placeholder('请填写设备编号，如sn')
                             ->clearable()
-                            ->required(),
+                            ->required()
+                            ->onEvent([
+                                'change' => [
+                                    // ✅ 新增：防抖，避免输入过程中频繁请求
+                                    'debounce' => 300,
+                                    'actions' => [
+                                        [
+                                            'actionType' => 'setValue',
+                                            'componentName' => 'device_sn',
+                                            'args' => [
+                                                'value' => '${device_sn | upperCase}',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ]),
                         amis()->SelectControl('device_pos', '安装位置')
                             ->options(Enum::DevicePos)
                             ->placeholder('安装位置')

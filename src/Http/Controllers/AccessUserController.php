@@ -8,6 +8,8 @@ use DagaSmart\BizAdmin\Renderers\DialogAction;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 // use PhpMqtt\Client\Facades\MQTT;
 
@@ -147,7 +149,7 @@ class AccessUserController extends AdminController
                     amis()->Divider()->lineStyle('dashed')->visible(! $isEdit),
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->GroupControl()->direction('vertical')->body([
-                            amis()->StaticExactControl('id', 'ID')->visibleOn('${id}')->copyable(),
+                            amis()->StaticExactControl('id', 'ID')->visible($isEdit)->copyable(),
                             amis()->TagControl('user_type', '用户类型')
                                 ->options(Enum::user_type())
                                 ->static('${user_type !== "visitor"}')
@@ -168,10 +170,8 @@ class AccessUserController extends AdminController
                                 ->description('<span class=text-follow>${rel.grade.grade_name || rel.department.department_name}</span>${rel.classes?"/":""}<span class=text-follow-dark>${rel.classes.classes_name}</span>')
                                 ->visible($isEdit)->visibleOn('${user_type !== "visitor"}'),
 
-                            // ================以下新增时生效==================
-                            amis()->TextControl('user_name', '用户姓名')
-                                ->hidden($isEdit)
-                                ->required(),
+                            // ==========================以下新增时生效=================================
+                            amis()->TextControl('user_id', '用户ID')->visible(! $isEdit),
                             amis()->TextControl('id_card', '身份证号')
                                 ->validateOnChange()
                                 ->validations([
@@ -180,6 +180,138 @@ class AccessUserController extends AdminController
                                 ->validationErrors([
                                     'matchRegexp' => '请输入有效的中国大陆身份证号码',
                                 ])
+                                ->hidden($isEdit)
+                                ->required()
+                                ->validateOnChange()
+                                ->validations([
+                                    'matchRegexp' => '/^[\\d|*]{17}[\\dXx]$/i',
+                                ])
+                                ->validationErrors([
+                                    'matchRegexp' => '请输入有效的身份证号码',
+                                ])
+                                ->onEvent([
+                                    'change' => [
+                                        // ✅ 新增：防抖，避免输入过程中频繁请求
+                                        'debounce' => 300,
+                                        'actions' => [
+                                            [
+                                                'actionType' => 'setValue',
+                                                'componentName' => 'id_card',
+                                                'args' => [
+                                                    'value' => '${id_card | upperCase}',
+                                                ],
+                                            ],
+                                            // ✅ 新增：校验当前字段，失败则自动阻断后续所有动作
+                                            [
+                                                'actionType' => 'validate', // validate天然具有校验失败，阻断后续动作的功能
+                                                'componentName' => 'id_card',
+                                            ],
+                                            // ✅ 新增：编辑模式下直接跳过（保留原有逻辑）
+                                            [
+                                                'actionType' => 'stopPropagation',
+                                                'expression' => '${isEdit}',
+                                            ],
+                                            // ✅ 新增：额外判断长度，防止正则通过但值不完整的情况
+                                            [
+                                                'actionType' => 'stopPropagation',
+                                                'expression' => '${!id_card || id_card.length !== 18}',
+                                            ],
+                                            [
+                                                'actionType' => 'ajax',
+                                                'api' => [
+                                                    'method' => 'GET',
+                                                    'url' => admin_url('biz/access/user/${id_card}/check'),
+                                                ],
+                                            ],
+                                            [
+                                                'actionType' => 'setValue',
+                                                'componentName' => 'user_id',
+                                                'args' => [
+                                                    'value' => '${event.data.responseResult.responseData.id||null}',
+                                                ],
+                                            ],
+                                            [
+                                                'actionType' => 'disabled',
+                                                'componentName' => 'user_id',
+                                                'expression' => '${!!event.data.responseResult.responseData.id}',
+                                            ],
+                                            [
+                                                'actionType' => 'enabled',
+                                                'componentName' => 'user_id',
+                                                'expression' => '${!event.data.responseResult.responseData.id}',
+                                            ],
+                                            [
+                                                'actionType' => 'setValue',
+                                                'componentName' => 'user_name',
+                                                'args' => [
+                                                    'value' => '${event.data.responseResult.responseData.user_name||null}',
+                                                ],
+                                            ],
+                                            [
+                                                'actionType' => 'disabled',
+                                                'componentName' => 'user_name',
+                                                'expression' => '${!!event.data.responseResult.responseData.user_name}',
+                                            ],
+                                            [
+                                                'actionType' => 'enabled',
+                                                'componentName' => 'user_name',
+                                                'expression' => '${!event.data.responseResult.responseData.user_name}',
+                                            ],
+                                            [
+                                                'actionType' => 'setValue',
+                                                'componentName' => 'patriarch_no',
+                                                'args' => [
+                                                    'value' => '${event.data.responseResult.responseData.patriarch_no||CONCATENATE("S", DATETOSTR(TODAY(), "YYYYMMDDHHmmss"),PADSTART(INT(RAND()*1000000000), 9, "0"))}',
+                                                ],
+                                            ],
+                                            [
+                                                'actionType' => 'disabled',
+                                                'componentName' => 'patriarch_no',
+                                                'expression' => '${!!event.data.responseResult.responseData.patriarch_no}',
+                                            ],
+                                            [
+                                                'actionType' => 'enabled',
+                                                'componentName' => 'patriarch_no',
+                                                'expression' => '${!event.data.responseResult.responseData.patriarch_no}',
+                                            ],
+                                            [
+                                                'actionType' => 'setValue',
+                                                'componentName' => 'avatar',
+                                                'args' => [
+                                                    'value' => '${event.data.responseResult.responseData.avatar||null}',
+                                                ],
+                                            ],
+                                            [
+                                                'actionType' => 'disabled',
+                                                'componentName' => 'avatar',
+                                                'expression' => '${!!event.data.responseResult.responseData.avatar}',
+                                            ],
+                                            [
+                                                'actionType' => 'enabled',
+                                                'componentName' => 'avatar',
+                                                'expression' => '${!event.data.responseResult.responseData.avatar}',
+                                            ],
+                                            [
+                                                'actionType' => 'setValue',
+                                                'componentName' => 'mobile',
+                                                'args' => [
+                                                    'value' => '${event.data.responseResult.responseData.mobile||null}',
+                                                ],
+                                            ],
+                                            [
+                                                'actionType' => 'disabled',
+                                                'componentName' => 'mobile',
+                                                'expression' => '${!!event.data.responseResult.responseData.mobile}',
+                                            ],
+                                            [
+                                                'actionType' => 'enabled',
+                                                'componentName' => 'mobile',
+                                                'expression' => '${!event.data.responseResult.responseData.mobile}',
+                                            ],
+                                        ],
+                                    ],
+                                ]),
+                            amis()->TextControl('user_name', '用户姓名')
                                 ->hidden($isEdit)
                                 ->required(),
                             amis()->TextControl('mobile', '手机号码')
@@ -259,7 +391,7 @@ class AccessUserController extends AdminController
                         //                            ->valueFormat('YYYY-MM-DD')
                         //                            ->description('<span class=text-blue-300>空值为长期</span>'),
                     ]),
-                ]),
+                ])->visible(false),
 
             ]),
 
@@ -447,6 +579,17 @@ class AccessUserController extends AdminController
         }
 
         return $this->response()->fail('导入失败，请检查');
+    }
+
+    /**
+     * 检查身份证并获取家长信息
+     */
+    public function AccessUserCheck(): JsonResponse|JsonResource
+    {
+        $id_card = request()->id_card ?? null;
+        $res = $this->service->AccessUserCheck($id_card);
+
+        return $this->response()->success($res);
     }
 
     protected function rowSetAction(bool|string $dialog = false, string $dialogSize = 'md', string $title = '')
