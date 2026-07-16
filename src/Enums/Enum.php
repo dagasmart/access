@@ -13,9 +13,9 @@ enum Enum
         ['value' => 0, 'label' => '通用码'],
         ['value' => 1, 'label' => '一类码'],
         ['value' => 2, 'label' => '二类码'],
-        ['value' => 3, 'label' => '三类级'],
-        ['value' => 4, 'label' => '四类级'],
-        ['value' => 5, 'label' => '五类级'],
+        ['value' => 3, 'label' => '三类码'],
+        ['value' => 4, 'label' => '四类码'],
+        ['value' => 5, 'label' => '五类码'],
     ];
 
     /**
