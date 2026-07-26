@@ -272,7 +272,7 @@ class AccessPermissionController extends AdminController
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
                             ->options($this->service->permissionCode())
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
+                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
                             ->disabledOn('${!enterprise_id}')
@@ -390,7 +390,7 @@ class AccessPermissionController extends AdminController
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
                             ->options($this->service->permissionCode())
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
+                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
                             ->disabledOn('${!enterprise_id}')

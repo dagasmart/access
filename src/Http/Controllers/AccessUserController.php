@@ -29,7 +29,7 @@ class AccessUserController extends AdminController
             ->headerToolbar([
                 $this->createButton('dialog'),
                 ...$this->baseHeaderToolBar(),
-                $this->importAction('put:biz/access/user/import'),
+                $this->importAction('put:extension/access/user/import'),
             ])
             ->autoGenerateFilter()
             ->affixHeader()
@@ -220,7 +220,7 @@ class AccessUserController extends AdminController
                                                 'actionType' => 'ajax',
                                                 'api' => [
                                                     'method' => 'GET',
-                                                    'url' => admin_url('biz/access/user/${id_card}/check'),
+                                                    'url' => admin_url('extension/access/user/${id_card}/check'),
                                                 ],
                                             ],
                                             [
@@ -385,7 +385,7 @@ class AccessUserController extends AdminController
                 amis()->Tab()->title('权限设置')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
                         //                        amis()->SelectControl('permission_code', '用户权限')
-                        //                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/permission/all'))
+                        //                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/permission/all'))
                         //                            ->value(),
                         //                        amis()->DateRangeControl('expiry_date','进出日期')
                         //                            ->valueFormat('YYYY-MM-DD')
@@ -505,7 +505,7 @@ class AccessUserController extends AdminController
                             ->clearable()
                             ->required(),
                         amis()->TreeSelectControl('grade_id', '年级')
-                            ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade'))
+                            ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade'))
                             ->visibleOn('${enterprise_id && user_type && user_type !== "worker"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
@@ -514,7 +514,7 @@ class AccessUserController extends AdminController
                             ->onlyLeaf()
                             ->required(),
                         amis()->SelectControl('classes_id', '班级')
-                            ->source(admin_url('biz/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                            ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
                             ->visibleOn('${enterprise_id && grade_id && user_type && user_type !== "worker"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
@@ -522,7 +522,7 @@ class AccessUserController extends AdminController
                             ->searchable()
                             ->required(),
                         amis()->SelectControl('user_id', '学生')
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
                             ->visibleOn('${enterprise_id && grade_id && classes_id && user_type && user_type == "student"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
@@ -532,7 +532,7 @@ class AccessUserController extends AdminController
                             ->clearable()
                             ->searchable(),
                         amis()->SelectControl('user_id', '家长')
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
                             ->visibleOn('${enterprise_id && grade_id && classes_id && user_type && user_type == "patriarch"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
@@ -542,7 +542,7 @@ class AccessUserController extends AdminController
                             ->clearable()
                             ->searchable(),
                         amis()->TreeSelectControl('department_id', '部门')
-                            ->source(admin_url('biz/worker/${enterprise_id||0}/department/data'))
+                            ->source(admin_url('extension/worker/${enterprise_id||0}/department/data'))
                             ->visibleOn('${enterprise_id && user_type && user_type == "worker"}')
                             ->onlyChildren(false)
                             ->onlyLeaf(false)
@@ -550,7 +550,7 @@ class AccessUserController extends AdminController
                             ->searchable()
                             ->required(),
                         amis()->SelectControl('user_id', is_school_module() ? '教师' : '员工')
-                            ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
                             ->visibleOn('${enterprise_id && department_id && user_type && user_type == "worker"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()

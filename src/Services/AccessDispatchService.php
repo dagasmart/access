@@ -137,7 +137,7 @@ class AccessDispatchService extends AdminService
                 return [
                     'label' => $res->name,
                     'value' => $res->id,
-                    'to' => admin_url('biz/access/dispatch?enterprise_id='.$res->id.'&enterprise_name='.$res->name),
+                    'to' => admin_url('extension/access/dispatch?enterprise_id='.$res->id.'&enterprise_name='.$res->name),
                     'active' => $res->id === (int) request('enterprise_id'),
                     'activeOn' => $res->id === (int) request('enterprise_id'),
                 ];

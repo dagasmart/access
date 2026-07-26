@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 // Route::get('access', [Controllers\AccessController::class, 'index'])->withoutMiddleware([Authenticate::class, Permission::class]);
 
 Route::group([
-    'prefix' => 'biz',
+    'prefix' => 'extension',
     'middleware' => [Middleware\Middleware::class],
 ], function (Router $router) {
     $router->get('access/enterprise/{enterprise_id}/facility/options', [Controllers\AccessDeviceController::class, 'options']);

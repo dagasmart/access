@@ -54,7 +54,7 @@ class AccessDeviceController extends AdminController
                                 ->searchable()
                                 ->clearable(),
                             amis()->TreeSelectControl('facility_id', '设施主体')
-                                ->source(admin_url('biz/access/enterprise/${enterprise_id||0}/facility/options'))
+                                ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/facility/options'))
                                 ->disabledOn('${!enterprise_id}')
                                 ->placeholder('请选择设施主体')
                                 ->onlyChildren()
@@ -123,7 +123,7 @@ class AccessDeviceController extends AdminController
                         ->clearable()
                         ->required(),
                     amis()->TreeSelectControl('facility_id', '设施主体')
-                        ->source(admin_url('biz/enterprise/${enterprise_id||0}/facility/options'))
+                        ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
                         ->options($this->service->options())
                         ->value('${rel.facility.id}')
                         ->disabledOn('${!enterprise_id}')
