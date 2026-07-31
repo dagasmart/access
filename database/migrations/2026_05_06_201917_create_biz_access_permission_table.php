@@ -33,7 +33,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable()->useCurrent();
 
             $table->index(['id']);
-            $table->unique(['permission_code', 'enterprise_id', 'module', 'mer_id']);
+            $table->unique(['permission_code', 'enterprise_id', 'module', 'mer_id'])->nullsNotDistinct();
         });
     }
 
