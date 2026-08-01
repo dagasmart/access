@@ -290,6 +290,8 @@ class AccessDeviceController extends AdminController
 
         $action->label($title)->level('link');
 
+        $action->visible(admin_can('set')); // 权限方法 admin_can('set')
+
         return AdminPipeline::handle(AdminPipeline::PIPE_EDIT_ACTION, $action);
     }
 

@@ -210,7 +210,7 @@ class AccessUserService extends AdminService
                     'user_id',
                     'id_card',
                     // 推荐使用 DB::raw 并明确字段来源，避免 admin_raw 的潜在风险
-                    admin_raw("CONCAT(users.user_name, '⟨', users.id_card, '⟩') as label_as"),
+                    admin_raw("CONCAT(user_name, '⟨', id_card, '⟩') as label_as"),
                 ])
                 ->toArray();
         } elseif ($userType == 'patriarch') {
@@ -290,6 +290,8 @@ class AccessUserService extends AdminService
                 ->where('state', 1)
                 ->with('student')
                 ->get()
+                ->filter(fn ($item) => $item->student !== null) // 过滤无效关联
+                ->unique('student_id') // 在集合层按 patriarch_id 去重，比 distinct() 更可靠
                 ->map(fn ($item) => [
                     // ...$item->toArray(),
                     'label' => $item->student?->student_name,
@@ -320,6 +322,8 @@ class AccessUserService extends AdminService
                 ->whereIn('student_id', $subQuery) // 安全：生成 IN (SELECT ...) 而非 IN (1,2,3...)
                 ->with('patriarch') // 预加载，杜绝 N + 1 问题
                 ->get()
+                ->filter(fn ($item) => $item->patriarch !== null) // 过滤无效关联
+                ->unique('patriarch_id') // 在集合层按 patriarch_id 去重，比 distinct() 更可靠
                 ->map(fn ($item) => [
                     // ...$item->toArray(),
                     'label' => $item->patriarch?->patriarch_name,
@@ -337,6 +341,8 @@ class AccessUserService extends AdminService
                 ->whereIn('state', [1, 2, 3, 4])
                 ->with('worker')
                 ->get()
+                ->filter(fn ($item) => $item->worker !== null) // 过滤无效关联
+                ->unique('worker_id') // 在集合层按 patriarch_id 去重，比 distinct() 更可靠
                 ->map(fn ($item) => [
                     // ...$item->toArray(),
                     'label' => $item->worker?->worker_name,
