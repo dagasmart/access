@@ -22,8 +22,8 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id')->nullable()->index()->comment('用户id');
             $table->string('user_name', 32)->nullable()->index()->comment('用户姓名');
-            $table->text('avatar')->nullable()->comment('用户照片');
             $table->string('user_type', 16)->nullable()->index()->comment('用户类型：worker员工,student学生,patriarch家长,visitor访客');
+            $table->text('avatar')->nullable()->comment('用户照片');
             $table->string('id_card', 32)->nullable()->index()->comment('身份证号');
             $table->string('mobile', 16)->nullable()->index()->comment('手机号');
             $table->foreignId('enterprise_id')->nullable()->index()->comment('机构单位id');
@@ -32,6 +32,7 @@ return new class extends Migration
             $table->smallInteger('state')->nullable()->default(1)->index()->comment('1正常，0停用');
             $table->smallInteger('sort')->nullable()->comment('排序[0-255]');
             $table->string('id_card_enc', 64)->nullable()->comment('身份证密文');
+            $table->string('mobile_enc', 64)->nullable()->comment('手机号密文');
             $table->string('remark')->nullable()->comment('备注');
             $table->string('module', 32)->nullable()->comment('模块');
             $table->unsignedBigInteger('mer_id')->nullable()->comment('商户');

@@ -2,6 +2,7 @@
 
 namespace DagaSmart\Access\Services;
 
+use DagaSmart\Access\Enums\Enum;
 use DagaSmart\Access\Models\AccessUser;
 use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
 use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
@@ -180,48 +181,108 @@ class AccessUserService extends AdminService
         return $student->getClassesAll();
     }
 
-    public function userAll(): array
+    public function userAll(): array|Collection
     {
         $request = request();
 
-        // 基础参数校验（建议使用 FormRequest 或 validate()）
         $enterpriseId = $request->enterprise_id;
+        $departmentId = $request->department_id ?? null;
         $gradeId = $request->grade_id;
         $classesId = $request->classes_id;
-        $userType = $request->user_type;
+        $userType = $request->user_type ?? null;
+        $isBoarder = $request->is_boarder ?? null;
+
+        // ✅ 基础参数校验
+        admin_abort_if(
+            ! $enterpriseId,
+            '【'.extend_trans('organization.enterprise_name').'】 必选项'
+        );
+
+        admin_abort_if(
+            ! in_array($userType, ['student', 'patriarch', 'worker', 'visitor'], true),
+            '【用户类型】 必选项'
+        );
+
+        // ✅ 安全解析 is_boarder，过滤空值
+        $isBoarder = $isBoarder !== null && $isBoarder !== ''
+            ? array_values(array_filter(explode(',', $isBoarder), fn ($v) => $v !== ''))
+            : [];
+
+        // ✅ 统一查询字段
+        $selectColumns = [
+            admin_raw("CONCAT(user_name, '(', id_card, ')') as label"),
+            'id as value',
+            'user_id',
+        ];
 
         if ($userType == 'student') {
-
-            $isBoarder = explode(',', (string) $request->is_boarder);
-
-            return $this->query()
+            $record = $this->query()
                 ->whereHas('student', function (Builder $builder) use ($enterpriseId, $gradeId, $classesId, $isBoarder) {
                     $builder->where('enterprise_id', $enterpriseId)
                         ->where('grade_id', $gradeId)
                         ->when($classesId, fn (Builder $sub) => $sub->where('classes_id', $classesId))
                         ->when($isBoarder, fn (Builder $sub) => $sub->whereIn('is_boarder', $isBoarder));
                 })
-                ->with('student')
+                // ->with('student')
+                ->where('user_type', 'student')
                 ->where('state', 1)
-                ->distinct()
-                ->get([
-                    'id as value',
-                    'user_name as label',
-                    'user_id',
-                    'id_card',
-                    // 推荐使用 DB::raw 并明确字段来源，避免 admin_raw 的潜在风险
-                    admin_raw("CONCAT(user_name, '⟨', id_card, '⟩') as label_as"),
-                ])
-                ->toArray();
+                ->get($selectColumns)
+                ->makeHidden('rel') // ✅ 临时排除 $appends 中的 rel 字段
+                ->unique('user_id') // 在集合层按 user_id 去重，比 distinct() 更可靠
+                ->values();
+
         } elseif ($userType == 'patriarch') {
-            return [];
+            $subQuery = EnterpriseGradeClassesStudent::query()
+                ->select('student_id')
+                ->where('enterprise_id', $enterpriseId)
+                ->where('grade_id', $gradeId)
+                ->where('classes_id', $classesId)
+                ->where('state', 1)
+                ->groupBy('student_id');
+
+            $record = $this->query()
+                ->whereHas('patriarch', function (Builder $builder) use ($subQuery) {
+                    $builder->whereIn('student_id', $subQuery);
+                })
+                // ->with('patriarch')
+                ->where('user_type', 'patriarch')
+                ->where('state', 1)
+                ->get($selectColumns)
+                ->makeHidden('rel') // ✅ 临时排除 $appends 中的 rel 字段
+                ->unique('user_id') // 在集合层按 user_id 去重，比 distinct() 更可靠
+                ->values();
         } elseif ($userType == 'worker') {
-            return [];
+            $subQuery = EnterpriseDepartmentJobWorker::query()
+                ->select('worker_id')
+                ->where('enterprise_id', $enterpriseId)
+                ->where('department_id', $departmentId)
+                ->whereIn('state', Enum::workerActive())
+                ->groupBy('worker_id');
+
+            $record = $this->query()
+                ->whereHas('worker', function (Builder $builder) use ($subQuery) {
+                    $builder->whereIn('worker_id', $subQuery);
+                })
+                ->where('user_type', 'worker')
+                ->where('state', 1)
+                ->get($selectColumns)
+                ->makeHidden('rel') // ✅ 临时排除 $appends 中的 rel 字段
+                ->unique('user_id') // 在集合层按 user_id 去重，比 distinct() 更可靠
+                ->values();
         } elseif ($userType == 'visitor') {
-            return [];
+            $record = $this->query()
+                ->where('user_type', 'visitor')
+                ->where('state', 1)
+                ->orderByDesc('id')
+                ->get($selectColumns)
+                ->makeHidden('rel') // ✅ 临时排除 $appends 中的 rel 字段
+                ->unique('user_id') // 在集合层按 user_id 去重，比 distinct() 更可靠
+                ->values();
         } else {
             return [];
         }
+
+        return $record;
     }
 
     /**
@@ -294,7 +355,7 @@ class AccessUserService extends AdminService
                 ->unique('student_id') // 在集合层按 patriarch_id 去重，比 distinct() 更可靠
                 ->map(fn ($item) => [
                     // ...$item->toArray(),
-                    'label' => $item->student?->student_name,
+                    'label' => $item->student?->student_name.'('.$item->student?->id_card.')',
                     'value' => $item->student_id,
                 ])
                 ->collect();
@@ -326,7 +387,7 @@ class AccessUserService extends AdminService
                 ->unique('patriarch_id') // 在集合层按 patriarch_id 去重，比 distinct() 更可靠
                 ->map(fn ($item) => [
                     // ...$item->toArray(),
-                    'label' => $item->patriarch?->patriarch_name,
+                    'label' => $item->patriarch?->patriarch_name.'('.$item->patriarch?->id_card.')',
                     'value' => $item->patriarch_id,
                 ])
                 ->collect();
@@ -345,7 +406,7 @@ class AccessUserService extends AdminService
                 ->unique('worker_id') // 在集合层按 patriarch_id 去重，比 distinct() 更可靠
                 ->map(fn ($item) => [
                     // ...$item->toArray(),
-                    'label' => $item->worker?->worker_name,
+                    'label' => $item->worker?->worker_name.'('.$item->worker?->id_card.')',
                     'value' => $item->worker_id,
                 ])
                 ->collect();
@@ -400,8 +461,8 @@ class AccessUserService extends AdminService
                     'user_name' => $item->student?->student_name,
                     'avatar' => $item->student?->avatar,
                     'user_type' => $user_type,
-                    'id_card' => base64_decode($item->student?->id_card_enc),
-                    'mobile' => base64_decode($item->student?->mobile_enc),
+                    'id_card' => $item->student?->id_card,
+                    'mobile' => $item->student?->mobile,
                     'enterprise_id' => $item->enterprise_id,
                     'open_type' => $open_type,
                     'state' => 1,
@@ -439,8 +500,8 @@ class AccessUserService extends AdminService
                     'user_name' => $item->patriarch?->patriarch_name,
                     'avatar' => $item->patriarch?->avatar,
                     'user_type' => $user_type,
-                    'id_card' => base64_decode($item->patriarch?->id_card_enc),
-                    'mobile' => base64_decode($item->patriarch?->mobile_enc),
+                    'id_card' => $item->patriarch?->id_card,
+                    'mobile' => $item->patriarch?->mobile,
                     'enterprise_id' => $item->enterprise_id,
                     'open_type' => $open_type,
                     'state' => 1,
@@ -468,8 +529,8 @@ class AccessUserService extends AdminService
                     'user_name' => $item->worker?->worker_name,
                     'avatar' => $item->worker?->avatar,
                     'user_type' => $user_type,
-                    'id_card' => base64_decode($item->worker?->id_card_enc),
-                    'mobile' => base64_decode($item->worker?->mobile_enc),
+                    'id_card' => $item->worker?->id_card,
+                    'mobile' => $item->worker?->mobile,
                     'enterprise_id' => $item->enterprise_id,
                     'open_type' => $open_type,
                     'state' => 1,

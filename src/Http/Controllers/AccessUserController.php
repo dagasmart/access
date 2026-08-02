@@ -171,7 +171,7 @@ class AccessUserController extends AdminController
                                 ->visible($isEdit)->visibleOn('${user_type !== "visitor"}'),
 
                             // ==========================以下新增时生效=================================
-                            amis()->TextControl('user_id', '用户ID')->visible(! $isEdit),
+                            amis()->HiddenControl('user_id', '用户ID')->visible(! $isEdit),
                             amis()->TextControl('id_card', '身份证号')
                                 ->validateOnChange()
                                 ->validations([
@@ -321,6 +321,7 @@ class AccessUserController extends AdminController
                                 ->required(),
                             amis()->SelectControl('enterprise_id', module_enterprise_alias())
                                 ->options($this->service->getEnterpriseAll())
+                                ->selectFirst()
                                 ->hidden($isEdit)
                                 ->required(),
                             amis()->SwitchControl('state', '状态')
@@ -375,6 +376,7 @@ class AccessUserController extends AdminController
                     amis()->GroupControl()->mode('horizontal')->body([
                         amis()->CheckboxesControl('open_type', '开锁模式')
                             ->options(Enum::open_type())
+                            ->selectFirst()
                             ->required(),
                     ]),
                     amis()->DateTimeControl(false, '更新时间')

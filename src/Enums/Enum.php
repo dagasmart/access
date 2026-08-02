@@ -3,6 +3,7 @@
 namespace DagaSmart\Access\Enums;
 
 use DagaSmart\BizAdmin\Enums\Enum as Enums;
+use DagaSmart\Organization\Enums\Enum as OrganizationEnum;
 
 enum Enum
 {
@@ -129,4 +130,19 @@ enum Enum
     {
         return Enums::weeks($type);
     }
+
+    /**
+     * 有效状态
+     */
+    public static function workerActive(): array
+    {
+        return [
+            OrganizationEnum::WORKER_STATE_NORMAL,
+            OrganizationEnum::WORKER_STATE_LEAVE,
+            OrganizationEnum::WORKER_STATE_ACTING,
+            OrganizationEnum::WORKER_STATE_SUSPEND,
+        ];
+
+    }
+
 }

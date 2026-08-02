@@ -19,7 +19,7 @@ Route::group([
     $router->get('access/enterprise/{enterprise_id}/facility/options', [Controllers\AccessDeviceController::class, 'options']);
     $router->get('access/enterprise/{enterprise_id}/facility/{facility_id}/device/all', [Controllers\AccessDeviceController::class, 'deviceAll']);
     $router->get('access/enterprise/{enterprise_id}/department/{department_id}/user/{user_type}/all', [Controllers\AccessUserController::class, 'userAll']);
-    $router->get('access/enterprise/{enterprise_id}/grade/{grade_id}/classes/{classes_id}/user/{user_type}/is_boarder/{is_boarder}/all', [Controllers\AccessUserController::class, 'userAll']);
+    $router->get('access/enterprise/{enterprise_id}/department/{department_id}/grade/{grade_id}/classes/{classes_id}/user/{user_type}/is_boarder/{is_boarder}/all', [Controllers\AccessUserController::class, 'userAll']);
 
     // 获取用户/一键导入
     $router->get('access/enterprise/{enterprise_id}/{grade_id}/{classes_id}/{department_id}/{user_type}/user', [Controllers\AccessUserController::class, 'getAccessUser']);

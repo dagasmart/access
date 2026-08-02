@@ -83,6 +83,7 @@ class AccessServiceProvider extends ServiceProvider
         ['name' => '编辑', 'slug' => 'extension.access.user', 'abbr' => 'update', 'custom_order' => 3],
         ['name' => '查看', 'slug' => 'extension.access.user', 'abbr' => 'showed', 'custom_order' => 4],
         ['name' => '筛选', 'slug' => 'extension.access.user', 'abbr' => 'search', 'custom_order' => 5],
+        ['name' => '下发至设备', 'slug' => 'extension.access.user', 'abbr' => 'dispatch', 'custom_order' => 6],
         // 分发
         ['name' => '新增', 'slug' => 'extension.access.dispatch', 'abbr' => 'create', 'custom_order' => 1],
         ['name' => '删除', 'slug' => 'extension.access.dispatch', 'abbr' => 'delete', 'custom_order' => 2],

@@ -277,36 +277,47 @@ class AccessDispatchController extends AdminController
                 ->searchable()
                 ->onlyLeaf()
                 ->required(! $isEdit)
-                // ->visible(!$isEdit)
-                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!enterprise_id}'),
+                ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!enterprise_id}'),
             amis()->SelectControl('classes_id', '班级')
                 ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
                 ->disabledOn('${!grade_id}')
                 ->searchable()
+                ->clearable()
                 ->required()
                 ->visible(! $isEdit)
-                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!grade_id}'),
+                ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!grade_id}'),
             amis()->CheckboxesControl('is_boarder', '类别')
                 ->options(Enum::board_type())
                 ->value('0,1')
                 ->visible(! $isEdit)
                 ->visibleOn('${(user_type === "student") && !!classes_id}'),
+            amis()->TreeSelectControl('department_id', '部门')
+                ->source([
+                    'url' => admin_url('extension/worker/${enterprise_id}/department/data'),
+                    'method' => 'get',
+                    'sendOn' => '${!!ARRAYINCLUDES(["worker", "visitor"], user_type) && !!enterprise_id}', // 防止无效请求
+                ])
+                ->disabledOn('${!enterprise_id}')
+                ->searchable()
+                ->clearable()
+                ->required()
+                ->visible(! $isEdit)
+                ->visibleOn('${ARRAYINCLUDES(["worker"], user_type) && !!enterprise_id}'),
             amis()->SelectControl('access_user_id', '用户')
-                ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
-                ->disabledOn('${!classes_id}')
+                ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
+                ->disabledOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !enterprise_id)}')
 //                ->selectMode('table')
 //                ->columns([
 //                    ['name' => 'label', 'label' => '姓名'],
 //                    ['name' => 'id_card', 'label' => '身份证号'],
 //                ])
-                ->labelField('label_as')
                 ->clearValueOnSourceChange()
                 ->searchable()
                 ->clearable()
                 ->checkAll()
                 ->multiple()
                 ->visible(! $isEdit)
-                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!classes_id}'),
+                ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!enterprise_id)}'),
             amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
             amis()->StaticExactControl('user.id_card', '身份证号')->visible($isEdit),
         ]);
