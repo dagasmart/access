@@ -20,16 +20,16 @@ return new class extends Migration
         && Schema::create($this->name, function (Blueprint $table) {
             $table->comment('数智校园-门禁用户表');
             $table->id();
-            $table->integer('user_id')->nullable()->index()->comment('用户id');
-            $table->string('user_name', 32)->nullable()->index()->comment('用户姓名');
-            $table->string('user_type', 16)->nullable()->index()->comment('用户类型：worker员工,student学生,patriarch家长,visitor访客');
+            $table->integer('user_id')->nullable()->comment('用户id');
+            $table->string('user_name', 32)->nullable()->comment('用户姓名');
+            $table->string('user_type', 16)->nullable()->comment('用户类型：worker员工,student学生,patriarch家长,visitor访客');
             $table->text('avatar')->nullable()->comment('用户照片');
-            $table->string('id_card', 32)->nullable()->index()->comment('身份证号');
-            $table->string('mobile', 16)->nullable()->index()->comment('手机号');
-            $table->foreignId('enterprise_id')->nullable()->index()->comment('机构单位id');
-            $table->text('expiry_date')->nullable()->index()->comment('使用期限：空为长期');
+            $table->string('id_card', 32)->nullable()->comment('身份证号');
+            $table->string('mobile', 16)->nullable()->comment('手机号');
+            $table->foreignId('enterprise_id')->nullable()->comment('机构单位id');
+            $table->text('expiry_date')->nullable()->comment('使用期限：空为长期');
             $table->string('open_type', 64)->nullable()->comment('开锁模式：face人脸解锁，finger指纹解锁，card开锁卡片');
-            $table->smallInteger('state')->nullable()->default(1)->index()->comment('1正常，0停用');
+            $table->smallInteger('state')->nullable()->default(1)->comment('1正常，0停用');
             $table->smallInteger('sort')->nullable()->comment('排序[0-255]');
             $table->string('id_card_enc', 64)->nullable()->comment('身份证密文');
             $table->string('mobile_enc', 64)->nullable()->comment('手机号密文');
@@ -41,11 +41,17 @@ return new class extends Migration
 
             // ✅ 2. 仅为级联删除和外键查询创建【单列】索引
             // 联合索引的最左前缀原则无法高效支持中间列的等值查询/级联删除
+            $table->index('user_id');
+            $table->index('user_name');
+            $table->index('user_type');
+            $table->index('open_type');
+            $table->index('expiry_date');
             $table->index('enterprise_id');
-            $table->index(['enterprise_id', 'user_type', 'user_id']);
             $table->index('id_card');
+            $table->index('state');
             $table->index('module');
             $table->index('mer_id');
+            $table->index(['enterprise_id', 'user_type', 'user_id']);
 
             // ✅ 3. 唯一约束即主查询索引，框架自动生成 ≤63 字节安全名称
             $table->unique(['enterprise_id', 'user_type', 'user_id', 'module', 'mer_id'])->nullsNotDistinct();
