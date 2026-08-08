@@ -166,7 +166,6 @@ class AccessDispatchController extends AdminController
                         amis()->HiddenControl('enterprise_name', '${module_enterprise_alias}'),
                         amis()->TreeSelectControl('facility_id', '设施主体')
                             ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
-                            ->options($this->service->getFacilityAll())
                             ->searchable()
                             ->disabledOn('${!enterprise_id}')
                             ->onlyLeaf()
@@ -236,7 +235,6 @@ class AccessDispatchController extends AdminController
                 ->required(),
             amis()->TreeSelectControl('facility_id', '设施主体')
                 ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
-                ->options($this->service->getFacilityAll())
                 ->value('${device.rel.facility_id}')
                 ->disabledOn('${!enterprise_id}')
                 ->clearValueOnSourceChange()

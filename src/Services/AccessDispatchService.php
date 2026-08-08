@@ -151,30 +151,31 @@ class AccessDispatchService extends AdminService
     public function getEnterpriseAll(): array
     {
         $model = new EnterpriseService;
+
         return $model->getEnterpriseAll();
     }
 
     /**
      * 递归选择项
      */
-    public function getFacilityAll(): array
-    {
-        $id = request('id');
-        $enterprise_id = request('enterprise_id');
-        $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
-            ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->where('b.enterprise_id', $enterprise_id);
-            })
-            ->when($id, function ($query) use ($id) {
-                $query->where('b.facility_id', '<>', $id);
-            })
-            ->get()
-            ->toArray();
-
-        return array2tree($data);
-    }
+    //    public function getFacilityAll(): array
+    //    {
+    //        $id = request('id');
+    //        $enterprise_id = request('enterprise_id');
+    //        $data = $this->query()->from('biz_facility as a')
+    //            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
+    //            ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
+    //            ->when($enterprise_id, function ($query) use ($enterprise_id) {
+    //                $query->where('b.enterprise_id', $enterprise_id);
+    //            })
+    //            ->when($id, function ($query) use ($id) {
+    //                $query->where('b.facility_id', '<>', $id);
+    //            })
+    //            ->get()
+    //            ->toArray();
+    //
+    //        return array2tree($data);
+    //    }
 
     /**
      * 设备列表
