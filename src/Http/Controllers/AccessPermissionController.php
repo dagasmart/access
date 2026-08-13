@@ -77,6 +77,7 @@ class AccessPermissionController extends AdminController
                                                             // amis()->Tag()->label('星期${index+1}'),
                                                             amis()->SubFormControl('week${index+1}', '星期${["日","一","二","三","四","五","六","日"][index+1]}')
                                                                 ->multiple()
+                                                                ->className('icon-pencil-hidden')
                                                                 ->btnLabel('${begin}-${end}')
                                                                 ->draggable(false)
                                                                 ->addable(false)
@@ -403,10 +404,12 @@ class AccessPermissionController extends AdminController
                             // amis()->Tag()->label('星期${index+1}'),
                             amis()->SubFormControl('week${index+1}', '星期${["日","一","二","三","四","五","六","日"][index+1]}')
                                 ->multiple()
+                                ->className('icon-pencil-hidden')
                                 ->btnLabel('${begin}-${end}')
                                 ->draggable(false)
                                 ->addable(false)
                                 ->removable(false)
+                                ->operations([])
                                 ->form([
                                     'title' => '时间范围',
                                     'body' => [
