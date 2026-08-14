@@ -225,100 +225,102 @@ class AccessDispatchController extends AdminController
      */
     public function form($isEdit = false): Form
     {
-        return $this->baseForm()->data(['enterprise_id' => '${enterprise_id}'])->body([
-            amis()->SelectControl('enterprise_id', extend_trans('organization.enterprise_name'))
-                ->options($this->service->getEnterpriseAll())
-                ->value('${device.rel.enterprise_id}')
-                ->searchable()
-                ->clearable()
-                ->disabled($isEdit)
-                ->required(),
-            amis()->TreeSelectControl('facility_id', '设施主体')
-                ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
-                ->value('${device.rel.facility_id}')
-                ->disabledOn('${!enterprise_id}')
-                ->clearValueOnSourceChange()
-                ->onlyLeaf()
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->TreeSelectControl('device_brand', '设备品牌')
-                ->source(admin_url('extension/enterprise/device/access/brand/options'))
-                ->value('${device.device_brand}')
-                ->placeholder('请选择品牌')
-                ->disabledOn('${!facility_id}')
-                ->clearValueOnSourceChange()
-                ->searchable()
-                ->clearable(),
-            amis()->SelectControl('device_id', '分发设备')
-                ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
-                ->options($this->service->getDeviceAll())
-                ->value('${device.id}')
-                ->placeholder('请选择设备')
-                ->disabledOn('${!facility_id}')
-                ->clearValueOnSourceChange()
-                ->showInvalidMatch()
-                ->multiple()
-                ->searchable()
-                ->clearable()
-                ->required(),
-            amis()->RadiosControl('user_type', '用户类型')
-                ->options(Enum::user_type())
-                ->value('${user.user_type}')
-                ->disabledOn('${!enterprise_id}')
-                ->visibleOn('${!!enterprise_id}')
-                ->required()
-                ->static($isEdit),
-            amis()->TreeSelectControl('grade_id', '年级')
-                ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade'))
-                ->disabledOn('${!enterprise_id}')
-                ->searchable()
-                ->onlyLeaf()
-                ->required(! $isEdit)
-                ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!enterprise_id}'),
-            amis()->SelectControl('classes_id', '班级')
-                ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
-                ->disabledOn('${!grade_id}')
-                ->searchable()
-                ->clearable()
-                ->required()
-                ->visible(! $isEdit)
-                ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!grade_id}'),
-            amis()->CheckboxesControl('is_boarder', '类别')
-                ->options(Enum::board_type())
-                ->value('0,1')
-                ->visible(! $isEdit)
-                ->visibleOn('${(user_type === "student") && !!classes_id}'),
-            amis()->TreeSelectControl('department_id', '部门')
-                ->source([
-                    'url' => admin_url('extension/worker/${enterprise_id}/department/data'),
-                    'method' => 'get',
-                    'sendOn' => '${!!ARRAYINCLUDES(["worker", "visitor"], user_type) && !!enterprise_id}', // 防止无效请求
-                ])
-                ->disabledOn('${!enterprise_id}')
-                ->searchable()
-                ->clearable()
-                ->required()
-                ->visible(! $isEdit)
-                ->visibleOn('${ARRAYINCLUDES(["worker"], user_type) && !!enterprise_id}'),
-            amis()->SelectControl('access_user_id', '用户')
-                ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
-                ->disabledOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !enterprise_id)}')
+        return $this->baseForm()
+            ->data(['enterprise_id' => '${enterprise_id}'])
+            ->body([
+                amis()->SelectControl('enterprise_id', extend_trans('organization.enterprise_name'))
+                    ->options($this->service->getEnterpriseAll())
+                    ->value('${device.rel.enterprise_id}')
+                    ->searchable()
+                    ->clearable()
+                    ->disabled($isEdit)
+                    ->required(),
+                amis()->TreeSelectControl('facility_id', '设施主体')
+                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
+                    ->value('${device.rel.facility_id}')
+                    ->disabledOn('${!enterprise_id}')
+                    ->clearValueOnSourceChange()
+                    ->onlyLeaf()
+                    ->searchable()
+                    ->clearable()
+                    ->required(),
+                amis()->TreeSelectControl('device_brand', '设备品牌')
+                    ->source(admin_url('extension/enterprise/device/access/brand/options'))
+                    ->value('${device.device_brand}')
+                    ->placeholder('请选择品牌')
+                    ->disabledOn('${!facility_id}')
+                    ->clearValueOnSourceChange()
+                    ->searchable()
+                    ->clearable(),
+                amis()->SelectControl('device_id', '分发设备')
+                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                    ->options($this->service->getDeviceAll())
+                    ->value('${device.id}')
+                    ->placeholder('请选择设备')
+                    ->disabledOn('${!facility_id}')
+                    ->clearValueOnSourceChange()
+                    ->showInvalidMatch()
+                    ->multiple()
+                    ->searchable()
+                    ->clearable()
+                    ->required(),
+                amis()->RadiosControl('user_type', '用户类型')
+                    ->options(Enum::user_type())
+                    ->value('${user.user_type}')
+                    ->disabledOn('${!enterprise_id}')
+                    ->visibleOn('${!!enterprise_id}')
+                    ->required()
+                    ->static($isEdit),
+                amis()->TreeSelectControl('grade_id', '年级')
+                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade'))
+                    ->disabledOn('${!enterprise_id}')
+                    ->searchable()
+                    ->onlyLeaf()
+                    ->required(! $isEdit)
+                    ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!enterprise_id}'),
+                amis()->SelectControl('classes_id', '班级')
+                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                    ->disabledOn('${!grade_id}')
+                    ->searchable()
+                    ->clearable()
+                    ->required()
+                    ->visible(! $isEdit)
+                    ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!grade_id}'),
+                amis()->CheckboxesControl('is_boarder', '类别')
+                    ->options(Enum::board_type())
+                    ->value('0,1')
+                    ->visible(! $isEdit)
+                    ->visibleOn('${(user_type === "student") && !!classes_id}'),
+                amis()->TreeSelectControl('department_id', '部门')
+                    ->source([
+                        'url' => admin_url('extension/worker/${enterprise_id}/department/data'),
+                        'method' => 'get',
+                        'sendOn' => '${!!ARRAYINCLUDES(["worker", "visitor"], user_type) && !!enterprise_id}', // 防止无效请求
+                    ])
+                    ->disabledOn('${!enterprise_id}')
+                    ->searchable()
+                    ->clearable()
+                    ->required()
+                    ->visible(! $isEdit)
+                    ->visibleOn('${ARRAYINCLUDES(["worker"], user_type) && !!enterprise_id}'),
+                amis()->SelectControl('access_user_id', '用户')
+                    ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
+                    ->disabledOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !enterprise_id)}')
 //                ->selectMode('table')
 //                ->columns([
 //                    ['name' => 'label', 'label' => '姓名'],
 //                    ['name' => 'id_card', 'label' => '身份证号'],
 //                ])
-                ->clearValueOnSourceChange()
-                ->searchable()
-                ->clearable()
-                ->checkAll()
-                ->multiple()
-                ->visible(! $isEdit)
-                ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!enterprise_id)}'),
-            amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
-            amis()->StaticExactControl('user.id_card', '身份证号')->visible($isEdit),
-        ]);
+                    ->clearValueOnSourceChange()
+                    ->searchable()
+                    ->clearable()
+                    ->checkAll()
+                    ->multiple()
+                    ->visible(! $isEdit)
+                    ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!enterprise_id)}'),
+                amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
+                amis()->StaticExactControl('user.id_card', '身份证号')->visible($isEdit),
+            ]);
     }
 
     /**
