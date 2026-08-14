@@ -102,7 +102,7 @@ class AccessDispatchController extends AdminController
                 // 当前分类说明，提示用户正在查看哪个分类下的分发
                 amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_enterprise_alias}：</span><b>${enterprise_name || "全部"}</b>')->className('text-current')->align('right'),
             ])
-            ->combineNum(3)
+            ->combineNum(0)
             ->autoFillHeight(true)
             ->columns([
                 amis()->TableColumn('user_card', '用户/身份证号')

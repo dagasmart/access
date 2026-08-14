@@ -41,15 +41,17 @@ class AccessDispatchService extends AdminService
     {
         parent::searchable($query);
 
-        $query->whereHas('user', function ($query) {
-            $enterprise_id = request('enterprise_id');
-            $user_name = request('user_name');
-            $id_card = request('id_card');
-            $user_type = request('user_type');
+        $request = request();
+
+        $query->whereHas('user', function ($query) use ($request) {
+            $enterprise_id = $request->enterprise_id ?? null;
+            $user_name = $request->user_name ?? null;
+            $id_card = $request->id_card ?? null;
+            $user_type = $request->user_type ?? null;
             $query->when($enterprise_id, function ($query) use ($enterprise_id) {
                 $query->where('enterprise_id', $enterprise_id);
             })->when($user_name, function ($query) use ($user_name) {
-                $query->where('user_name', 'like', "%$user_name%");
+                $query->where('user_name', 'like', "'%$user_name%'");
             })->when($id_card, function ($query) use ($id_card) {
                 if (mb_strlen($id_card, 'UTF8') == 4) {
                     $query->where('id_card', 'like', "%$id_card");
@@ -59,11 +61,11 @@ class AccessDispatchService extends AdminService
             })->when($user_type, function ($query) use ($user_type) {
                 $query->where(['user_type' => $user_type]);
             });
-        })->whereHas('device', function ($query) {
-            $enterprise_id = request('enterprise_id');
-            $facility_id = request('facility_id');
-            $device_name = request('device_name');
-            $device_id = request('device_id');
+        })->whereHas('device', function ($query) use ($request) {
+            $enterprise_id = $request->enterprise_id ?? null;
+            $facility_id = $request->facility_id ?? null;
+            $device_name = $request->device_name ?? null;
+            $device_id = $request->device_id ?? null;
             $query->when($enterprise_id, function ($query) use ($enterprise_id) {
                 $query->whereHas('rel', function ($query) use ($enterprise_id) {
                     $query->where('enterprise_id', $enterprise_id);
@@ -73,7 +75,7 @@ class AccessDispatchService extends AdminService
                     $query->where('facility_id', $facility_id);
                 });
             })->when($device_name, function ($query) use ($device_name) {
-                $query->where('device_name', 'like', "%$device_name%");
+                $query->where('device_name', 'like', "'%$device_name%'");
             })->when($device_id, function ($query) use ($device_id) {
                 $ids = explode(',', $device_id);
                 $query->whereIn('id', $ids);
