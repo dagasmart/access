@@ -98,6 +98,7 @@ class AccessPermissionService extends AdminService
     public function getEnterpriseAll(): array
     {
         $model = new EnterpriseService;
+
         return $model->getEnterpriseAll();
     }
 
@@ -109,6 +110,11 @@ class AccessPermissionService extends AdminService
         $data = Enum::PERMISSION_CODE ?? [];
         $enterprise_id = $this->request->enterprise_id ?? null;
         $id = $this->request->id ?? null;
+
+        if (blank($enterprise_id)) {
+            return [];
+        }
+
         if ($data && $enterprise_id) {
             $pluck = $this->query()
                 ->where('enterprise_id', $enterprise_id)
@@ -127,9 +133,34 @@ class AccessPermissionService extends AdminService
         return $data;
     }
 
+    public function permissionData(): array
+    {
+        $enterprise_id = $this->request->enterprise_id ?? null;
+
+        if (blank($enterprise_id)) {
+            return [];
+        }
+
+        $codes = array_column(Enum::PERMISSION_CODE, 'label', 'value');
+
+        return $this->query()
+            ->where('enterprise_id', $enterprise_id)
+            ->orderBy('permission_code')
+            ->get(['permission_name as label', 'id as value', 'permission_code as code'])
+            ->makeHidden('combo')
+            ->each(function ($item) use ($codes) {
+                $item->label .= empty($codes[$item->code]) ? null : ' ('.$codes[$item->code].')';
+            })
+            ->toArray();
+    }
+
     public function permissionAll(): array
     {
         $enterprise_id = $this->request->enterprise_id ?? null;
+
+        if (blank($enterprise_id)) {
+            return [];
+        }
 
         return $this->query()
             ->where('enterprise_id', $enterprise_id)

@@ -17,6 +17,7 @@ Route::group([
     'middleware' => [Middleware\Middleware::class],
 ], function (Router $router) {
     $router->get('access/enterprise/{enterprise_id}/facility/options', [Controllers\AccessDeviceController::class, 'options']);
+    $router->get('access/enterprise/{enterprise_id}/permission/data', [Controllers\AccessPermissionController::class, 'permissionData']);
     $router->get('access/enterprise/{enterprise_id}/facility/{facility_id}/device/all', [Controllers\AccessDeviceController::class, 'deviceAll']);
     $router->get('access/enterprise/{enterprise_id}/department/{department_id}/user/{user_type}/all', [Controllers\AccessUserController::class, 'userAll']);
     $router->get('access/enterprise/{enterprise_id}/department/{department_id}/grade/{grade_id}/classes/{classes_id}/user/{user_type}/is_boarder/{is_boarder}/all', [Controllers\AccessUserController::class, 'userAll']);

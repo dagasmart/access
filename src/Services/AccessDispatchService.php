@@ -25,7 +25,7 @@ class AccessDispatchService extends AdminService
 
     public function loadRelations($query): void
     {
-        $query->with(['user', 'device']);
+        $query->with(['user', 'device', 'permission']);
     }
 
     public function sortable($query): void
@@ -80,21 +80,14 @@ class AccessDispatchService extends AdminService
                 $ids = explode(',', $device_id);
                 $query->whereIn('id', $ids);
             });
+        })->whereHas('permission', function ($query) use ($request) {
+            $enterprise_id = $request->enterprise_id ?? null;
+            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
+                $query->where('enterprise_id', $enterprise_id);
+            });
         });
         // $query->where(['device_type' => 'access']); //只查门禁设备
     }
-
-//    public function list(): array
-//    {
-//        $list = parent::list();
-//        if ($list['items']) {
-//            foreach ($list['items'] as &$item) {
-//                $item['user_type1111'] = '1111111111111111';
-//            }
-//        }
-//
-//        return $list;
-//    }
 
     /**
      * 新增保存
@@ -123,7 +116,14 @@ class AccessDispatchService extends AdminService
         $gradeId = $data['grade_id'] ?? null;
         $classesId = $data['classes_id'] ?? null;
         $departmentId = $data['department_id'] ?? null;
-        $permissionId = $data['permission_id'] ?? 0;
+
+        $permissionIds = $data['permission_id'] ?? null;
+        if (is_array($permissionIds)) {
+            $permissionIds = array_filter($permissionIds);
+        } else {
+            $permissionIds = array_filter(explode(',', $permissionIds));
+        }
+        admin_abort_if(! $permissionIds, '【权限】 必选项');
 
         // ✅ 安全解析 is_boarder，过滤空值
         $isBoarder = $data['is_boarder'] ?? null;
@@ -205,16 +205,18 @@ class AccessDispatchService extends AdminService
         if ($userIds) {
             foreach ($userIds as $userId) {
                 foreach ($deviceIds as $deviceId) {
-                    $record[] = [
-                        'enterprise_id' => $enterpriseId,
-                        'access_user_id' => $userId,
-                        'access_device_id' => $deviceId,
-                        'access_permission_id' => $permissionId,
-                        'state' => 0,
-                        'user_type' => $userType,
-                        'module' => $module,
-                        'mer_id' => $merId,
-                    ];
+                    foreach ($permissionIds as $permissionId) {
+                        $record[] = [
+                            'enterprise_id' => $enterpriseId,
+                            'access_user_id' => $userId,
+                            'access_device_id' => $deviceId,
+                            'access_permission_id' => $permissionId,
+                            'state' => 0,
+                            'user_type' => $userType,
+                            'module' => $module,
+                            'mer_id' => $merId,
+                        ];
+                    }
                 }
             }
         }

@@ -51,6 +51,7 @@ class AccessDispatchController extends AdminController
                 ])->set('md', 6),
                 amis()->Flex()->className('h-full')->items([
                     $this->chart(),
+                    $this->chart(),
                     $this->barChart(),
                 ])->direction('column')->set('md', 3),
             ]),
@@ -79,7 +80,9 @@ class AccessDispatchController extends AdminController
     {
         return amis()->Card()->className('w-full h-full')->body([
             amis()->Tabs()->tabsMode('line')->tabs([
-                amis()->Tab()->title('异常排查')->icon('menu')->body([
+                amis()->Tab()->title('进度')->icon('menu')->body([
+                ]),
+                amis()->Tab()->title('预警')->icon('menu')->body([
                 ]),
                 amis()->Tab()->title('分析')->icon('menu')->body([
                 ]),
@@ -94,7 +97,7 @@ class AccessDispatchController extends AdminController
     {
         $crud = $this->baseCRUD()
             ->id('dispatch-crud') // 供左侧导航和刷新使用的 CRUD 容器 ID
-            ->data(['module_enterprise_alias' => module_enterprise_alias()])
+            ->data(['module_enterprise_alias' => extend_trans('organization.enterprise_name')])
             ->filterTogglable(false)
             ->headerToolbar([
                 $this->createButton('drawer'),
@@ -156,7 +159,7 @@ class AccessDispatchController extends AdminController
                     ->set('multiple', true)
                     ->set('static', true),
 
-                amis()->TableColumn('device.facility_id', '${module_enterprise_alias}/设备信息')
+                amis()->TableColumn('device.facility_id', extend_trans('organization.enterprise_name').'/设备信息')
                     ->searchable(amis()->FormControl()->body([
                         amis()->SelectControl('enterprise_id', '${module_enterprise_alias}')
                             ->options($this->service->getEnterpriseAll())
@@ -202,7 +205,8 @@ class AccessDispatchController extends AdminController
 //                    ]]),
                     ->map(array_column(Enum::dispatch_state(), 'icon', 'value'))
                     ->labelMap(array_column(Enum::dispatch_state(), 'label', 'value'))
-                    ->set('align', 'center'),
+                    ->set('align', 'center')
+                    ->set('fixed', 'right'),
 
                 amis()->TableColumn('updated_at', '更新时间')
                     ->type('datetime')
@@ -212,9 +216,12 @@ class AccessDispatchController extends AdminController
                 // $this->rowActions('drawer')->fixed('right'),
                 $this->rowActions([
                     $this->rowShowButton('drawer'),
-                    $this->rowPublishButton('下发'),
+                    $this->rowEditButton(true),
                     $this->rowDeleteButton(),
-                ])->fixed('right'),
+                    $this->rowPublishButton('下发'),
+                ])
+                    ->set('fixed', 'right')
+                    ->set('width', 150),
             ]);
 
         return $this->baseList($crud);
@@ -318,6 +325,20 @@ class AccessDispatchController extends AdminController
                     ->multiple()
                     ->visible(! $isEdit)
                     ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!enterprise_id)}'),
+                amis()->SelectControl('permission_id', '权限')
+                    ->source([
+                        'url' => admin_url('extension/access/enterprise/${enterprise_id||0}/permission/data'),
+                        'method' => 'get',
+                        'sendOn' => '${!!enterprise_id}', // 防止无效请求
+                    ])
+                    ->clearValueOnSourceChange()
+                    ->searchable()
+                    ->clearable()
+                    ->checkAll()
+                    ->multiple()
+                    ->visibleOn('${enterprise_id && device_id && user_type}')
+                    ->visible(! $isEdit)
+                    ->required(),
                 amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
                 amis()->StaticExactControl('user.id_card', '身份证号')->visible($isEdit),
             ]);
@@ -394,7 +415,7 @@ class AccessDispatchController extends AdminController
                 ])
                 ->size('xs')
         );
-        $action->label($title)->level('warning')->icon('download')->visible(admin_user()->administrator());
+        $action->label($title)->level('warning')->icon('download')->block()->visible(admin_user()->administrator());
 
         return AdminPipeline::handle(AdminPipeline::PIPE_EDIT_ACTION, $action);
     }

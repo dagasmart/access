@@ -30,4 +30,9 @@ class AccessDispatch extends Model
     {
         return $this->hasOne(AccessDevice::class, 'id', 'access_device_id')->with('rel');
     }
+
+    public function permission(): HasOne
+    {
+        return $this->hasOne(AccessPermission::class, 'id', 'access_permission_id');
+    }
 }
