@@ -11,7 +11,7 @@ class Middleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (! admin_extension_enabled('dagasmart.organization')) {
+        if (! admin_extension_enabled('dagasmart.basic')) {
             return admin_response()->fail('没有找到「<b class=text-danger>基础安装包</b>」，请进行安装并启用');
         }
 
