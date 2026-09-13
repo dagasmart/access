@@ -25,7 +25,7 @@ return new class extends Migration
             $table->json('exclude_date')->nullable()->comment('是否禁止');
             $table->tinyInteger('is_allow')->nullable()->default(0)->index()->comment('是否允许');
             $table->json('allow_date')->nullable()->comment('允许日期');
-            $table->integer('enterprise_id')->nullable()->index()->comment('机构单位');
+            $table->integer('organization_id')->nullable()->index()->comment('机构单位');
             $table->json('body')->nullable();
             $table->string('module', 32)->nullable()->index();
             $table->integer('mer_id')->nullable()->index();
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable()->useCurrent();
 
             $table->index(['id']);
-            $table->unique(['permission_code', 'enterprise_id', 'module', 'mer_id'])->nullsNotDistinct();
+            $table->unique(['permission_code', 'organization_id', 'module', 'mer_id'])->nullsNotDistinct();
         });
     }
 

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('access_user_id')->nullable()->index()->comment('门禁用户id');
             $table->foreignId('access_device_id')->nullable()->index()->comment('门禁设备id');
             $table->foreignId('access_permission_id')->nullable()->index()->comment('门禁权限id');
-            $table->integer('enterprise_id')->nullable()->comment('机构组织ID');
+            $table->integer('organization_id')->nullable()->comment('机构组织ID');
             $table->string('auth_model', 16)->nullable()->default('days')->comment('授权类型:每天days、工作日workdays、自定义日期custom');
             $table->text('auth_date')->nullable()->comment('授权日期');
             $table->time('start_time')->nullable()->comment('有效期开始时间');
@@ -49,7 +49,7 @@ return new class extends Migration
             $table->index('mer_id');
 
             // ✅ 3. 唯一约束即主查询索引，框架自动生成 ≤63 字节安全名称
-            $table->unique(['enterprise_id', 'access_user_id', 'access_device_id', 'access_permission_id', 'user_type', 'module', 'mer_id'])->nullsNotDistinct();
+            $table->unique(['organization_id', 'access_user_id', 'access_device_id', 'access_permission_id', 'user_type', 'module', 'mer_id'])->nullsNotDistinct();
 
             // ✅ 4. 外键约束（复用已存在的单列索引，零额外开销）
             $table->foreignId('access_user_id')

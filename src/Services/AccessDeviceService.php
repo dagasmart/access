@@ -19,13 +19,13 @@ class AccessDeviceService extends AdminService
 
     public function loadRelations($query): void
     {
-        $enterprise_id = request()->enterprise_id ?? null;
+        $organization_id = request()->organization_id ?? null;
         $facility_id = request()->facility_id ?? null;
 
-        $query->whereHas('rel', function (Builder $builder) use ($enterprise_id, $facility_id) {
+        $query->whereHas('rel', function (Builder $builder) use ($organization_id, $facility_id) {
             $builder
-                ->when($enterprise_id, function ($query) use ($enterprise_id) {
-                    $query->where('enterprise_id', $enterprise_id);
+                ->when($organization_id, function ($query) use ($organization_id) {
+                    $query->where('organization_id', $organization_id);
                 })
                 ->when($facility_id, function ($query) use ($facility_id) {
                     $query->where('facility_id', explode(',', (string) $facility_id));
@@ -68,17 +68,17 @@ class AccessDeviceService extends AdminService
 
         $request = request()->all();
 
-        $enterprise_id = $request['enterprise_id'];
+        $organization_id = $request['organization_id'];
         $facility_id = $request['facility_id'];
 
-        if ($model->id && ! empty($enterprise_id) && ! empty($facility_id)) {
+        if ($model->id && ! empty($organization_id) && ! empty($facility_id)) {
             // 如果device_id只能关联一条记录，应该以 device_id 作为查找条件
             $priKey = [
                 'device_id' => $model->id,
             ];
             // 更新/创建的数组
             $values = [
-                'enterprise_id' => $enterprise_id,
+                'organization_id' => $organization_id,
                 'facility_id' => $facility_id,
                 'module' => admin_current_module(),
                 'mer_id' => admin_mer_id(),
@@ -123,17 +123,17 @@ class AccessDeviceService extends AdminService
     public function options(): array
     {
         $id = request()->id;
-        $enterprise_id = request()->enterprise_id;
+        $organization_id = request()->organization_id;
 
-        if (empty($enterprise_id)) {
+        if (empty($organization_id)) {
             return [];
         }
 
         $data = $this->query()->from('biz_facility as a')
             ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->where('b.enterprise_id', $enterprise_id);
+            ->when($organization_id, function ($query) use ($organization_id) {
+                $query->where('b.organization_id', $organization_id);
             })
             ->when($id, function ($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);

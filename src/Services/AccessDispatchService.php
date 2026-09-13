@@ -44,12 +44,12 @@ class AccessDispatchService extends AdminService
         $request = request();
 
         $query->whereHas('user', function ($query) use ($request) {
-            $enterprise_id = $request->enterprise_id ?? null;
+            $organization_id = $request->organization_id ?? null;
             $user_name = $request->user_name ?? null;
             $id_card = $request->id_card ?? null;
             $user_type = $request->user_type ?? null;
-            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->where('enterprise_id', $enterprise_id);
+            $query->when($organization_id, function ($query) use ($organization_id) {
+                $query->where('organization_id', $organization_id);
             })->when($user_name, function ($query) use ($user_name) {
                 $query->where('user_name', 'like', "'%$user_name%'");
             })->when($id_card, function ($query) use ($id_card) {
@@ -62,13 +62,13 @@ class AccessDispatchService extends AdminService
                 $query->where(['user_type' => $user_type]);
             });
         })->whereHas('device', function ($query) use ($request) {
-            $enterprise_id = $request->enterprise_id ?? null;
+            $organization_id = $request->organization_id ?? null;
             $facility_id = $request->facility_id ?? null;
             $device_name = $request->device_name ?? null;
             $device_id = $request->device_id ?? null;
-            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->whereHas('rel', function ($query) use ($enterprise_id) {
-                    $query->where('enterprise_id', $enterprise_id);
+            $query->when($organization_id, function ($query) use ($organization_id) {
+                $query->whereHas('rel', function ($query) use ($organization_id) {
+                    $query->where('organization_id', $organization_id);
                 });
             })->when($facility_id, function ($query) use ($facility_id) {
                 $query->whereHas('rel', function ($query) use ($facility_id) {
@@ -81,9 +81,9 @@ class AccessDispatchService extends AdminService
                 $query->whereIn('id', $ids);
             });
         })->whereHas('permission', function ($query) use ($request) {
-            $enterprise_id = $request->enterprise_id ?? null;
-            $query->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->where('enterprise_id', $enterprise_id);
+            $organization_id = $request->organization_id ?? null;
+            $query->when($organization_id, function ($query) use ($organization_id) {
+                $query->where('organization_id', $organization_id);
             });
         });
         // $query->where(['device_type' => 'access']); //只查门禁设备
@@ -95,9 +95,9 @@ class AccessDispatchService extends AdminService
     public function store($data): bool
     {
 
-        $enterpriseId = $data['enterprise_id'] ?? null;
+        $organizationId = $data['organization_id'] ?? null;
         // ✅ 基础参数校验
-        admin_abort_if(! $enterpriseId, '【'.extend_trans('organization.enterprise_name').'】 必选项');
+        admin_abort_if(! $organizationId, '【'.extend_trans('organization.enterprise_name').'】 必选项');
 
         $userType = $data['user_type'] ?? null;
         admin_abort_if(
@@ -137,8 +137,8 @@ class AccessDispatchService extends AdminService
             if ($userType == 'student') {
                 admin_abort_if(! $gradeId || ! $classesId, '【年级/班级】 必选项');
                 $userIds = $model->query()
-                    ->whereHas('student', function (Builder $builder) use ($enterpriseId, $gradeId, $classesId, $isBoarder) {
-                        $builder->where('enterprise_id', $enterpriseId)
+                    ->whereHas('student', function (Builder $builder) use ($organizationId, $gradeId, $classesId, $isBoarder) {
+                        $builder->where('organization_id', $organizationId)
                             ->where('grade_id', $gradeId)
                             ->when($classesId, fn (Builder $sub) => $sub->where('classes_id', $classesId))
                             ->when($isBoarder, fn (Builder $sub) => $sub->whereIn('is_boarder', $isBoarder));
@@ -152,7 +152,7 @@ class AccessDispatchService extends AdminService
                 admin_abort_if(! $classesId, '【年级/班级】 必选项');
                 $subQuery = EnterpriseGradeClassesStudent::query()
                     ->select('student_id')
-                    ->where('enterprise_id', $enterpriseId)
+                    ->where('organization_id', $organizationId)
                     ->where('grade_id', $gradeId)
                     ->where('classes_id', $classesId)
                     ->where('state', 1)
@@ -171,7 +171,7 @@ class AccessDispatchService extends AdminService
                 admin_abort_if(! $departmentId, '【部门】 必选项');
                 $subQuery = EnterpriseDepartmentJobWorker::query()
                     ->select('worker_id')
-                    ->where('enterprise_id', $enterpriseId)
+                    ->where('organization_id', $organizationId)
                     ->where('department_id', $departmentId)
                     ->whereIn('state', Enum::workerActive())
                     ->groupBy('worker_id');
@@ -207,7 +207,7 @@ class AccessDispatchService extends AdminService
                 foreach ($deviceIds as $deviceId) {
                     foreach ($permissionIds as $permissionId) {
                         $record[] = [
-                            'enterprise_id' => $enterpriseId,
+                            'organization_id' => $organizationId,
                             'access_user_id' => $userId,
                             'access_device_id' => $deviceId,
                             'access_permission_id' => $permissionId,
@@ -244,7 +244,7 @@ class AccessDispatchService extends AdminService
         $data['device_type'] = 'access'; // 门禁
         $userModel = new AccessUser;
         $userModel->query()
-            ->where('enterprise_id', $data['enterprise_id'])
+            ->where('organization_id', $data['organization_id'])
             ->get();
     }
 
@@ -262,9 +262,9 @@ class AccessDispatchService extends AdminService
                 return [
                     'label' => $res->name,
                     'value' => $res->id,
-                    'to' => admin_url('extension/access/dispatch?enterprise_id='.$res->id.'&enterprise_name='.$res->name),
-                    'active' => $res->id === (int) request('enterprise_id'),
-                    'activeOn' => $res->id === (int) request('enterprise_id'),
+                    'to' => admin_url('extension/access/dispatch?organization_id='.$res->id.'&enterprise_name='.$res->name),
+                    'active' => $res->id === (int) request('organization_id'),
+                    'activeOn' => $res->id === (int) request('organization_id'),
                 ];
             })
             ->toArray();

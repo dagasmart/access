@@ -72,7 +72,7 @@ class AccessPermission extends Model
 
     public function rel(): HasOne
     {
-        return $this->hasOne(Enterprise::class, 'id', 'enterprise_id')->select(['id', 'enterprise_name']);
+        return $this->hasOne(Enterprise::class, 'id', 'organization_id')->select(['id', 'enterprise_name']);
     }
 
     /**

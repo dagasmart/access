@@ -51,7 +51,7 @@ class AccessUserController extends AdminController
                     ->width(100),
                 amis()->TableColumn('rel.enterprise.enterprise_name', module_enterprise_alias().'信息')
                     ->searchable([
-                        'name' => 'enterprise_id',
+                        'name' => 'organization_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,
@@ -319,7 +319,7 @@ class AccessUserController extends AdminController
                                 ->validationErrors(['matchRegexp' => '请输入有效的中国大陆手机号码'])
                                 ->visible(! $isEdit)
                                 ->required(),
-                            amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                            amis()->SelectControl('organization_id', module_enterprise_alias())
                                 ->options($this->service->getEnterpriseAll())
                                 ->selectFirst()
                                 ->hidden($isEdit)
@@ -387,7 +387,7 @@ class AccessUserController extends AdminController
                 amis()->Tab()->title('权限设置')->icon('menu')->body([
                     amis()->GroupControl()->mode('horizontal')->body([
                         //                        amis()->SelectControl('permission_code', '用户权限')
-                        //                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/permission/all'))
+                        //                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/permission/all'))
                         //                            ->value(),
                         //                        amis()->DateRangeControl('expiry_date','进出日期')
                         //                            ->valueFormat('YYYY-MM-DD')
@@ -500,15 +500,15 @@ class AccessUserController extends AdminController
                             ->options(Enum::user_type(['visitor']))
                             ->clearable()
                             ->required(),
-                        amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                        amis()->SelectControl('organization_id', module_enterprise_alias())
                             ->options($this->service->getEnterpriseAll())
                             ->visibleOn('${user_type}')
                             ->clearValueOnSourceChange()
                             ->clearable()
                             ->required(),
                         amis()->TreeSelectControl('grade_id', '年级')
-                            ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade'))
-                            ->visibleOn('${enterprise_id && user_type && user_type !== "worker"}')
+                            ->source(admin_url('extension/enterprise/${organization_id||0}/grade'))
+                            ->visibleOn('${organization_id && user_type && user_type !== "worker"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
                             ->clearable()
@@ -516,16 +516,16 @@ class AccessUserController extends AdminController
                             ->onlyLeaf()
                             ->required(),
                         amis()->SelectControl('classes_id', '班级')
-                            ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
-                            ->visibleOn('${enterprise_id && grade_id && user_type && user_type !== "worker"}')
+                            ->source(admin_url('extension/enterprise/${organization_id||0}/grade/${grade_id||0}/classes'))
+                            ->visibleOn('${organization_id && grade_id && user_type && user_type !== "worker"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
                             ->clearable()
                             ->searchable()
                             ->required(),
                         amis()->SelectControl('user_id', '学生')
-                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
-                            ->visibleOn('${enterprise_id && grade_id && classes_id && user_type && user_type == "student"}')
+                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->visibleOn('${organization_id && grade_id && classes_id && user_type && user_type == "student"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
                             ->maxTagCount(5)
@@ -534,8 +534,8 @@ class AccessUserController extends AdminController
                             ->clearable()
                             ->searchable(),
                         amis()->SelectControl('user_id', '家长')
-                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
-                            ->visibleOn('${enterprise_id && grade_id && classes_id && user_type && user_type == "patriarch"}')
+                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->visibleOn('${organization_id && grade_id && classes_id && user_type && user_type == "patriarch"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
                             ->maxTagCount(5)
@@ -544,16 +544,16 @@ class AccessUserController extends AdminController
                             ->clearable()
                             ->searchable(),
                         amis()->TreeSelectControl('department_id', '部门')
-                            ->source(admin_url('extension/worker/${enterprise_id||0}/department/data'))
-                            ->visibleOn('${enterprise_id && user_type && user_type == "worker"}')
+                            ->source(admin_url('extension/worker/${organization_id||0}/department/data'))
+                            ->visibleOn('${organization_id && user_type && user_type == "worker"}')
                             ->onlyChildren(false)
                             ->onlyLeaf(false)
                             ->hideNodePathLabel()
                             ->searchable()
                             ->required(),
                         amis()->SelectControl('user_id', is_school_module() ? '教师' : '员工')
-                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
-                            ->visibleOn('${enterprise_id && department_id && user_type && user_type == "worker"}')
+                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/${grade_id||0}/${classes_id||0}/${department_id||0}/${user_type||0}/user'))
+                            ->visibleOn('${organization_id && department_id && user_type && user_type == "worker"}')
                             ->clearValueOnSourceChange()
                             ->clearValueOnHidden()
                             ->maxTagCount(5)
@@ -563,7 +563,7 @@ class AccessUserController extends AdminController
                             ->searchable(),
                         amis()->CheckboxesControl('open_type', '开锁模式')
                             ->options(Enum::open_type())
-                            ->visibleOn('${enterprise_id && user_type}')
+                            ->visibleOn('${organization_id && user_type}')
                             ->defaultCheckAll()
                             ->required(),
                     ])->direction('column')->style(['gap' => 0]),
@@ -723,7 +723,7 @@ class AccessUserController extends AdminController
                         ->perPage(3)
                         ->autoFillHeight()
                         ->columns([
-                            amis()->TableColumn('enterprise_id', '机构单位')
+                            amis()->TableColumn('organization_id', '机构单位')
                                 ->searchable()
                                 ->set('type', 'select')
                                 ->set('options', $this->service->getEnterpriseAll())

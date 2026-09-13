@@ -161,21 +161,21 @@ class AccessDispatchController extends AdminController
 
                 amis()->TableColumn('device.facility_id', extend_trans('organization.enterprise_name').'/设备信息')
                     ->searchable(amis()->FormControl()->body([
-                        amis()->SelectControl('enterprise_id', '${module_enterprise_alias}')
+                        amis()->SelectControl('organization_id', '${module_enterprise_alias}')
                             ->options($this->service->getEnterpriseAll())
                             ->autoFill(['enterprise_name' => '${label}'])
                             ->searchable()
                             ->clearable(),
                         amis()->HiddenControl('enterprise_name', '${module_enterprise_alias}'),
                         amis()->TreeSelectControl('facility_id', '设施主体')
-                            ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
+                            ->source(admin_url('extension/enterprise/${organization_id||0}/facility/options'))
                             ->searchable()
-                            ->disabledOn('${!enterprise_id}')
+                            ->disabledOn('${!organization_id}')
                             ->onlyLeaf()
                             ->clearable(),
                         amis()->TextControl('device_name', '设备名称')->placeholder('请输入查找的设备名称')->clearable(),
                         amis()->SelectControl('device_id', '设备编号')
-                            ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                            ->source(admin_url('extension/enterprise/${organization_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
                             ->options($this->service->getDeviceAll())
                             ->placeholder('请输入查找的设备编号')
                             ->clearValueOnSourceChange()
@@ -233,19 +233,19 @@ class AccessDispatchController extends AdminController
     public function form($isEdit = false): Form
     {
         return $this->baseForm()
-            ->data(['enterprise_id' => '${enterprise_id}'])
+            ->data(['organization_id' => '${organization_id}'])
             ->body([
-                amis()->SelectControl('enterprise_id', extend_trans('organization.enterprise_name'))
+                amis()->SelectControl('organization_id', extend_trans('organization.enterprise_name'))
                     ->options($this->service->getEnterpriseAll())
-                    ->value('${device.rel.enterprise_id}')
+                    ->value('${device.rel.organization_id}')
                     ->searchable()
                     ->clearable()
                     ->disabled($isEdit)
                     ->required(),
                 amis()->TreeSelectControl('facility_id', '设施主体')
-                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
+                    ->source(admin_url('extension/enterprise/${organization_id||0}/facility/options'))
                     ->value('${device.rel.facility_id}')
-                    ->disabledOn('${!enterprise_id}')
+                    ->disabledOn('${!organization_id}')
                     ->clearValueOnSourceChange()
                     ->onlyLeaf()
                     ->searchable()
@@ -260,7 +260,7 @@ class AccessDispatchController extends AdminController
                     ->searchable()
                     ->clearable(),
                 amis()->SelectControl('device_id', '分发设备')
-                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                    ->source(admin_url('extension/enterprise/${organization_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
                     ->options($this->service->getDeviceAll())
                     ->value('${device.id}')
                     ->placeholder('请选择设备')
@@ -274,19 +274,19 @@ class AccessDispatchController extends AdminController
                 amis()->RadiosControl('user_type', '用户类型')
                     ->options(Enum::user_type())
                     ->value('${user.user_type}')
-                    ->disabledOn('${!enterprise_id}')
-                    ->visibleOn('${!!enterprise_id}')
+                    ->disabledOn('${!organization_id}')
+                    ->visibleOn('${!!organization_id}')
                     ->required()
                     ->static($isEdit),
                 amis()->TreeSelectControl('grade_id', '年级')
-                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade'))
-                    ->disabledOn('${!enterprise_id}')
+                    ->source(admin_url('extension/enterprise/${organization_id||0}/grade'))
+                    ->disabledOn('${!organization_id}')
                     ->searchable()
                     ->onlyLeaf()
                     ->required(! $isEdit)
-                    ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!enterprise_id}'),
+                    ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!organization_id}'),
                 amis()->SelectControl('classes_id', '班级')
-                    ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                    ->source(admin_url('extension/enterprise/${organization_id||0}/grade/${grade_id||0}/classes'))
                     ->disabledOn('${!grade_id}')
                     ->searchable()
                     ->clearable()
@@ -300,19 +300,19 @@ class AccessDispatchController extends AdminController
                     ->visibleOn('${(user_type === "student") && !!classes_id}'),
                 amis()->TreeSelectControl('department_id', '部门')
                     ->source([
-                        'url' => admin_url('extension/worker/${enterprise_id}/department/data'),
+                        'url' => admin_url('extension/worker/${organization_id}/department/data'),
                         'method' => 'get',
-                        'sendOn' => '${!!ARRAYINCLUDES(["worker", "visitor"], user_type) && !!enterprise_id}', // 防止无效请求
+                        'sendOn' => '${!!ARRAYINCLUDES(["worker", "visitor"], user_type) && !!organization_id}', // 防止无效请求
                     ])
-                    ->disabledOn('${!enterprise_id}')
+                    ->disabledOn('${!organization_id}')
                     ->searchable()
                     ->clearable()
                     ->required()
                     ->visible(! $isEdit)
-                    ->visibleOn('${ARRAYINCLUDES(["worker"], user_type) && !!enterprise_id}'),
+                    ->visibleOn('${ARRAYINCLUDES(["worker"], user_type) && !!organization_id}'),
                 amis()->SelectControl('access_user_id', '用户')
-                    ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
-                    ->disabledOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !enterprise_id)}')
+                    ->source(admin_url('extension/access/enterprise/${organization_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
+                    ->disabledOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !organization_id)}')
 //                ->selectMode('table')
 //                ->columns([
 //                    ['name' => 'label', 'label' => '姓名'],
@@ -324,19 +324,19 @@ class AccessDispatchController extends AdminController
                     ->checkAll()
                     ->multiple()
                     ->visible(! $isEdit)
-                    ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!enterprise_id)}'),
+                    ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!organization_id)}'),
                 amis()->SelectControl('permission_id', '权限')
                     ->source([
-                        'url' => admin_url('extension/access/enterprise/${enterprise_id||0}/permission/data'),
+                        'url' => admin_url('extension/access/enterprise/${organization_id||0}/permission/data'),
                         'method' => 'get',
-                        'sendOn' => '${!!enterprise_id}', // 防止无效请求
+                        'sendOn' => '${!!organization_id}', // 防止无效请求
                     ])
                     ->clearValueOnSourceChange()
                     ->searchable()
                     ->clearable()
                     ->checkAll()
                     ->multiple()
-                    ->visibleOn('${enterprise_id && device_id && user_type}')
+                    ->visibleOn('${organization_id && device_id && user_type}')
                     ->visible(! $isEdit)
                     ->required(),
                 amis()->StaticExactControl('user.user_name', '用户姓名')->visible($isEdit),
@@ -372,14 +372,14 @@ class AccessDispatchController extends AdminController
                 ->value('${user.user_type}')
                 ->static(),
             amis()->TreeSelectControl('grade_id', '年级')
-                ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade'))
-                ->disabledOn('${!enterprise_id}')
+                ->source(admin_url('extension/enterprise/${organization_id||0}/grade'))
+                ->disabledOn('${!organization_id}')
                 ->searchable()
                 ->onlyLeaf()
                 ->required()
-                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!enterprise_id}'),
+                ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!organization_id}'),
             amis()->SelectControl('classes_id', '班级')
-                ->source(admin_url('extension/enterprise/${enterprise_id||0}/grade/${grade_id||0}/classes'))
+                ->source(admin_url('extension/enterprise/${organization_id||0}/grade/${grade_id||0}/classes'))
                 ->disabledOn('${!grade_id}')
                 ->searchable()
                 ->required()

@@ -98,6 +98,6 @@ class AccessUser extends Model
 
     public function visitor(): HasOne
     {
-        return $this->hasOne(Enterprise::class, 'id', 'enterprise_id');
+        return $this->hasOne(Enterprise::class, 'id', 'organization_id');
     }
 }

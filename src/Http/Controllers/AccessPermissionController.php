@@ -26,10 +26,10 @@ class AccessPermissionController extends AdminController
             ->autoFillHeight(true)
             ->combineNum(1)
             ->columns([
-                amis()->TableColumn('enterprise_id', module_enterprise_alias())
+                amis()->TableColumn('organization_id', module_enterprise_alias())
                     ->sortable()
                     ->searchable([
-                        'name' => 'enterprise_id',
+                        'name' => 'organization_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,
@@ -260,7 +260,7 @@ class AccessPermissionController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('基本信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('normal')->body([
-                        amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                        amis()->SelectControl('organization_id', module_enterprise_alias())
                             ->options($this->service->getEnterpriseAll())
                             ->value('${rel.enterprise_name}')
                             ->size('lg')
@@ -273,10 +273,10 @@ class AccessPermissionController extends AdminController
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
                             ->options($this->service->permissionCode())
-                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
+                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
-                            ->disabledOn('${!enterprise_id}')
+                            ->disabledOn('${!organization_id}')
                             ->required(),
                     ]),
                 ]),
@@ -378,7 +378,7 @@ class AccessPermissionController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('基本信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('normal')->body([
-                        amis()->SelectControl('enterprise_id', module_enterprise_alias())
+                        amis()->SelectControl('organization_id', module_enterprise_alias())
                             ->options($this->service->getEnterpriseAll())
                             ->value('${rel.enterprise_name}')
                             ->size('lg')
@@ -391,10 +391,10 @@ class AccessPermissionController extends AdminController
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
                             ->options($this->service->permissionCode())
-                            ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/permission/${id||0}/code'))
+                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
-                            ->disabledOn('${!enterprise_id}')
+                            ->disabledOn('${!organization_id}')
                             ->required(),
                     ]),
                 ]),

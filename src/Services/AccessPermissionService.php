@@ -34,7 +34,7 @@ class AccessPermissionService extends AdminService
         if (request()->orderBy && request()->orderDir) {
             $query->orderBy(request()->orderBy, request()->orderDir ?? 'asc');
         } else {
-            $query->orderBy('enterprise_id', 'asc');
+            $query->orderBy('organization_id', 'asc');
         }
         $query->orderBy('permission_code', 'asc');
     }
@@ -80,7 +80,7 @@ class AccessPermissionService extends AdminService
         parent::saved($model, $isEdit);
         //        $request = request()->all();
         //        $data = [
-        //            'enterprise_id' => $request['enterprise_id'],
+        //            'organization_id' => $request['organization_id'],
         //            'facility_id' => $request['facility_id'],
         //            'device_id' => $model->id,
         //        ];
@@ -108,16 +108,16 @@ class AccessPermissionService extends AdminService
     public function permissionCode(): array
     {
         $data = Enum::PERMISSION_CODE ?? [];
-        $enterprise_id = $this->request->enterprise_id ?? null;
+        $organization_id = $this->request->organization_id ?? null;
         $id = $this->request->id ?? null;
 
-        if (blank($enterprise_id)) {
+        if (blank($organization_id)) {
             return [];
         }
 
-        if ($data && $enterprise_id) {
+        if ($data && $organization_id) {
             $pluck = $this->query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->when($id, function ($query) use ($id) {
                     $query->where('id', '<>', $id);
                 })
@@ -135,16 +135,16 @@ class AccessPermissionService extends AdminService
 
     public function permissionData(): array
     {
-        $enterprise_id = $this->request->enterprise_id ?? null;
+        $organization_id = $this->request->organization_id ?? null;
 
-        if (blank($enterprise_id)) {
+        if (blank($organization_id)) {
             return [];
         }
 
         $codes = array_column(Enum::PERMISSION_CODE, 'label', 'value');
 
         return $this->query()
-            ->where('enterprise_id', $enterprise_id)
+            ->where('organization_id', $organization_id)
             ->orderBy('permission_code')
             ->get(['permission_name as label', 'id as value', 'permission_code as code'])
             ->makeHidden('combo')
@@ -156,14 +156,14 @@ class AccessPermissionService extends AdminService
 
     public function permissionAll(): array
     {
-        $enterprise_id = $this->request->enterprise_id ?? null;
+        $organization_id = $this->request->organization_id ?? null;
 
-        if (blank($enterprise_id)) {
+        if (blank($organization_id)) {
             return [];
         }
 
         return $this->query()
-            ->where('enterprise_id', $enterprise_id)
+            ->where('organization_id', $organization_id)
             ->orderBy('permission_code')
             ->get(['permission_name as label', 'permission_code as value'])
             ->map(function ($rows) {
@@ -259,12 +259,12 @@ class AccessPermissionService extends AdminService
     public function options(): array
     {
         $id = request()->id;
-        $enterprise_id = request()->enterprise_id;
+        $organization_id = request()->organization_id;
         $data = $this->query()->from('biz_facility as a')
             ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->where('b.enterprise_id', $enterprise_id);
+            ->when($organization_id, function ($query) use ($organization_id) {
+                $query->where('b.organization_id', $organization_id);
             })
             ->when($id, function ($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);

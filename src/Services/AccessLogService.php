@@ -55,7 +55,7 @@ class AccessLogService extends AdminService
         parent::saved($model, $isEdit);
         $request = request()->all();
         $data = [
-            'enterprise_id' => $request['enterprise_id'],
+            'organization_id' => $request['organization_id'],
             'facility_id' => $request['facility_id'],
             'device_id' => $model->id,
         ];
@@ -85,12 +85,12 @@ class AccessLogService extends AdminService
     public function options(): array
     {
         $id = request()->id;
-        $enterprise_id = request()->enterprise_id;
+        $organization_id = request()->organization_id;
         $data = $this->query()->from('biz_facility as a')
             ->join('biz_enterprise_facility as b','a.id','=','b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function($query) use ($enterprise_id) {
-                $query->where('b.enterprise_id', $enterprise_id);
+            ->when($organization_id, function($query) use ($organization_id) {
+                $query->where('b.organization_id', $organization_id);
             })
             ->when($id, function($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);

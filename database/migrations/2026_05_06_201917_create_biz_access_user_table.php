@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('avatar')->nullable()->comment('用户照片');
             $table->string('id_card', 32)->nullable()->comment('身份证号');
             $table->string('mobile', 16)->nullable()->comment('手机号');
-            $table->foreignId('enterprise_id')->nullable()->comment('机构单位id');
+            $table->foreignId('organization_id')->nullable()->comment('机构单位id');
             $table->text('expiry_date')->nullable()->comment('使用期限：空为长期');
             $table->string('open_type', 64)->nullable()->comment('开锁模式：face人脸解锁，finger指纹解锁，card开锁卡片');
             $table->smallInteger('state')->nullable()->default(1)->comment('1正常，0停用');
@@ -46,32 +46,33 @@ return new class extends Migration
             $table->index('user_type');
             $table->index('open_type');
             $table->index('expiry_date');
-            $table->index('enterprise_id');
+            $table->index('organization_id');
             $table->index('id_card');
             $table->index('state');
             $table->index('module');
             $table->index('mer_id');
-            $table->index(['enterprise_id', 'user_type', 'user_id']);
+            $table->index(['organization_id', 'user_type', 'user_id']);
 
             // ✅ 3. 唯一约束即主查询索引，框架自动生成 ≤63 字节安全名称
-            $table->unique(['enterprise_id', 'user_type', 'user_id', 'module', 'mer_id'])->nullsNotDistinct();
+            $table->unique(['organization_id', 'user_type', 'user_id', 'module', 'mer_id'])->nullsNotDistinct();
 
-            // ✅ 4. 外键约束（复用已存在的单列索引，零额外开销）
-            $table->foreignId('enterprise_id')
-                ->constrained('biz_enterprise')
+            // ✅ 修复：用 foreign() 引用已存在的字段，而不是重新 foreignId()
+            $table->foreign('organization_id')
+                ->references('id')
+                ->on('biz_organization')
                 ->cascadeOnDelete();
-
-            // ✅ PostgreSQL HOT Update 优化（仍需原生 SQL）
-            DB::connection($this->connection)->statement("ALTER TABLE $this->name SET (fillfactor = 90)");
-
-            $driver = config('database.connections.'.$this->connection.'.driver');
-            if ($driver == 'mysql') {
-                DB::statement("ALTER TABLE {$this->name} AUTO_INCREMENT=1000000000");
-            }
-            if ($driver == 'pgsql') {
-                DB::statement("alter sequence {$this->name}_id_seq restart with 1000000000");
-            }
         });
+
+        // ✅ PostgreSQL HOT Update 优化（仍需原生 SQL）
+        DB::connection($this->connection)->statement("ALTER TABLE $this->name SET (fillfactor = 90)");
+
+        $driver = config('database.connections.'.$this->connection.'.driver');
+        if ($driver == 'mysql') {
+            DB::statement("ALTER TABLE {$this->name} AUTO_INCREMENT=1000000000");
+        }
+        if ($driver == 'pgsql') {
+            DB::statement("alter sequence {$this->name}_id_seq restart with 1000000000");
+        }
     }
 
     /**

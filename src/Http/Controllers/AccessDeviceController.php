@@ -48,14 +48,14 @@ class AccessDeviceController extends AdminController
                 amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
                     ->searchable(
                         amis()->FormControl()->body([
-                            amis()->SelectControl('enterprise_id', '机构单位')
+                            amis()->SelectControl('organization_id', '机构单位')
                                 ->options($this->service->getEnterpriseAll())
                                 ->placeholder('请选择机构单位')
                                 ->searchable()
                                 ->clearable(),
                             amis()->TreeSelectControl('facility_id', '设施主体')
-                                ->source(admin_url('extension/access/enterprise/${enterprise_id||0}/facility/options'))
-                                ->disabledOn('${!enterprise_id}')
+                                ->source(admin_url('extension/access/enterprise/${organization_id||0}/facility/options'))
+                                ->disabledOn('${!organization_id}')
                                 ->placeholder('请选择设施主体')
                                 ->onlyChildren()
                                 ->onlyLeaf(false)
@@ -116,17 +116,17 @@ class AccessDeviceController extends AdminController
         return $this->baseForm()->body([
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('单位主体')->icon('menu')->body([
-                    amis()->SelectControl('enterprise_id', '机构单位')
+                    amis()->SelectControl('organization_id', '机构单位')
                         ->options($this->service->getEnterpriseAll())
-                        ->value('${rel.enterprise_id}')
+                        ->value('${rel.organization_id}')
                         ->searchable()
                         ->clearable()
                         ->required(),
                     amis()->TreeSelectControl('facility_id', '设施主体')
-                        ->source(admin_url('extension/enterprise/${enterprise_id||0}/facility/options'))
+                        ->source(admin_url('extension/enterprise/${organization_id||0}/facility/options'))
                         ->options($this->service->options())
                         ->value('${rel.facility.id}')
-                        ->disabledOn('${!enterprise_id}')
+                        ->disabledOn('${!organization_id}')
                         ->cascade()
                         ->onlyLeaf(true)
                         ->searchable()

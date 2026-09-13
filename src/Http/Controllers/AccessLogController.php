@@ -62,7 +62,7 @@ class AccessLogController extends AdminController
                     ->set('enlargeTitle', '现场实拍'),
                 amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
                     ->searchable([
-                        'name' => 'enterprise_id',
+                        'name' => 'organization_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,

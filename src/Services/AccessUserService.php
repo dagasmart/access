@@ -47,7 +47,7 @@ class AccessUserService extends AdminService
     public function store($data): bool
     {
         // 【稳定】1. 严格校验必填字段，避免后续 Undefined Index
-        $requiredKeys = ['id_card', 'user_name', 'user_type', 'enterprise_id'];
+        $requiredKeys = ['id_card', 'user_name', 'user_type', 'organization_id'];
         $validated = array_intersect_key($data, array_flip($requiredKeys));
         admin_abort_if(
             count($validated) !== count($requiredKeys),
@@ -88,7 +88,7 @@ class AccessUserService extends AdminService
                 'user_type' => $validated['user_type'],
                 'id_card' => $idCard,
                 'mobile' => $mobile,
-                'enterprise_id' => $validated['enterprise_id'],
+                'organization_id' => $validated['organization_id'],
                 'open_type' => $data['open_type'] ?? '',
                 'state' => $data['state'] ?? 0,
                 'sort' => 255,
@@ -101,7 +101,7 @@ class AccessUserService extends AdminService
             // 【性能】6. upsert 必须依赖唯一索引，且 update 字段要完整
             $this->query()->upsert(
                 [$record],
-                uniqueBy: ['user_id', 'user_type', 'enterprise_id', 'module', 'mer_id'],
+                uniqueBy: ['user_id', 'user_type', 'organization_id', 'module', 'mer_id'],
                 update: ['user_name', 'avatar', 'id_card', 'id_card_enc', 'mobile', 'mobile_enc', 'open_type', 'state']
             );
 
@@ -115,7 +115,7 @@ class AccessUserService extends AdminService
     public function saving(&$data, $primaryKey = null): void
     {
         $user_type = $data['user_type'] ?? null;
-        $enterprise_id = $data['enterprise_id'] ?? null;
+        $organization_id = $data['organization_id'] ?? null;
 
         // 身份证号
         $id_card = $data['id_card'] ?? null;
@@ -129,7 +129,7 @@ class AccessUserService extends AdminService
             // 是否已存在
             $id = $data['id'] ?? null;
             $exists = $this->query()
-                ->where(['enterprise_id' => $enterprise_id])
+                ->where(['organization_id' => $organization_id])
                 ->where(['id_card' => $id_card])
                 ->when($id, function ($query) use ($id) {
                     return $query->where('id', '<>', $id);
@@ -185,7 +185,7 @@ class AccessUserService extends AdminService
     {
         $request = request();
 
-        $enterpriseId = $request->enterprise_id;
+        $organizationId = $request->organization_id;
         $departmentId = $request->department_id ?? null;
         $gradeId = $request->grade_id;
         $classesId = $request->classes_id;
@@ -194,7 +194,7 @@ class AccessUserService extends AdminService
 
         // ✅ 基础参数校验
         admin_abort_if(
-            ! $enterpriseId,
+            ! $organizationId,
             '【'.extend_trans('organization.enterprise_name').'】 必选项'
         );
 
@@ -217,8 +217,8 @@ class AccessUserService extends AdminService
 
         if ($userType == 'student') {
             $record = $this->query()
-                ->whereHas('student', function (Builder $builder) use ($enterpriseId, $gradeId, $classesId, $isBoarder) {
-                    $builder->where('enterprise_id', $enterpriseId)
+                ->whereHas('student', function (Builder $builder) use ($organizationId, $gradeId, $classesId, $isBoarder) {
+                    $builder->where('organization_id', $organizationId)
                         ->where('grade_id', $gradeId)
                         ->when($classesId, fn (Builder $sub) => $sub->where('classes_id', $classesId))
                         ->when($isBoarder, fn (Builder $sub) => $sub->whereIn('is_boarder', $isBoarder));
@@ -234,7 +234,7 @@ class AccessUserService extends AdminService
         } elseif ($userType == 'patriarch') {
             $subQuery = EnterpriseGradeClassesStudent::query()
                 ->select('student_id')
-                ->where('enterprise_id', $enterpriseId)
+                ->where('organization_id', $organizationId)
                 ->where('grade_id', $gradeId)
                 ->where('classes_id', $classesId)
                 ->where('state', 1)
@@ -254,7 +254,7 @@ class AccessUserService extends AdminService
         } elseif ($userType == 'worker') {
             $subQuery = EnterpriseDepartmentJobWorker::query()
                 ->select('worker_id')
-                ->where('enterprise_id', $enterpriseId)
+                ->where('organization_id', $organizationId)
                 ->where('department_id', $departmentId)
                 ->whereIn('state', Enum::workerActive())
                 ->groupBy('worker_id');
@@ -301,12 +301,12 @@ class AccessUserService extends AdminService
     public function options(): array
     {
         $id = request()->id;
-        $enterprise_id = request()->enterprise_id;
+        $organization_id = request()->organization_id;
         $data = $this->query()->from('biz_facility as a')
             ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
-            ->when($enterprise_id, function ($query) use ($enterprise_id) {
-                $query->where('b.enterprise_id', $enterprise_id);
+            ->when($organization_id, function ($query) use ($organization_id) {
+                $query->where('b.organization_id', $organization_id);
             })
             ->when($id, function ($query) use ($id) {
                 $query->where('b.facility_id', '<>', $id);
@@ -323,7 +323,7 @@ class AccessUserService extends AdminService
     public function getAccessUser(): array|Collection
     {
         $request = request();
-        $enterprise_id = $request->enterprise_id;
+        $organization_id = $request->organization_id;
         $grade_id = $request->grade_id;
         $classes_id = $request->classes_id;
         $department_id = $request->department_id;
@@ -333,7 +333,7 @@ class AccessUserService extends AdminService
             admin_abort('用户类型不能为空');
         }
 
-        if (empty($enterprise_id)) {
+        if (empty($organization_id)) {
             admin_abort(is_school_module().'单位不能为空');
         }
 
@@ -345,7 +345,7 @@ class AccessUserService extends AdminService
             admin_abort_if(empty($classes_id), '班级不能为空');
 
             $record = EnterpriseGradeClassesStudent::query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
                 ->where('classes_id', $classes_id)
                 ->where('state', 1)
@@ -371,7 +371,7 @@ class AccessUserService extends AdminService
             // ⚠️ 核心：传入Builder对象而非数组，Laravel自动编译为子查询，零PHP内存开销
             $subQuery = EnterpriseGradeClassesStudent::query()
                 ->select('student_id')
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
                 ->where('classes_id', $classes_id)
                 ->where('state', 1)
@@ -379,7 +379,7 @@ class AccessUserService extends AdminService
 
             // 3. 主查询：通过子查询关联 + 预加载家长信息
             $record = EnterprisePatriarchStudent::query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->whereIn('student_id', $subQuery) // 安全：生成 IN (SELECT ...) 而非 IN (1,2,3...)
                 ->with('patriarch') // 预加载，杜绝 N + 1 问题
                 ->get()
@@ -397,7 +397,7 @@ class AccessUserService extends AdminService
         if ($user_type == 'worker') {
             admin_abort_if(empty($department_id), '部门不能为空');
             $record = EnterpriseDepartmentJobWorker::query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->where('department_id', $department_id)
                 ->whereIn('state', [1, 2, 3, 4])
                 ->with('worker')
@@ -422,7 +422,7 @@ class AccessUserService extends AdminService
     {
         $request = request();
         $user_type = $request->user_type;
-        $enterprise_id = $request->enterprise_id;
+        $organization_id = $request->organization_id;
         $grade_id = $request->grade_id;
         $classes_id = $request->classes_id;
         $department_id = $request->department_id;
@@ -433,12 +433,12 @@ class AccessUserService extends AdminService
             admin_abort('用户类型不能为空');
         }
 
-        if (empty($enterprise_id)) {
+        if (empty($organization_id)) {
             admin_abort(is_school_module().'单位不能为空');
         }
 
         // 最大排序值
-        $max = (int) $this->query()->where('enterprise_id', $enterprise_id)->max('sort');
+        $max = (int) $this->query()->where('organization_id', $organization_id)->max('sort');
 
         $record = [];
         if ($user_type === 'student') {
@@ -447,7 +447,7 @@ class AccessUserService extends AdminService
             admin_abort_if(empty($classes_id), '班级不能为空');
 
             $record = EnterpriseGradeClassesStudent::query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
                 ->where('classes_id', $classes_id)
                 ->where('state', 1)
@@ -463,7 +463,7 @@ class AccessUserService extends AdminService
                     'user_type' => $user_type,
                     'id_card' => $item->student?->id_card,
                     'mobile' => $item->student?->mobile,
-                    'enterprise_id' => $item->enterprise_id,
+                    'organization_id' => $item->organization_id,
                     'open_type' => $open_type,
                     'state' => 1,
                     'sort' => intval($max + $index + 1),
@@ -483,7 +483,7 @@ class AccessUserService extends AdminService
             // ⚠️ 核心：传入Builder对象而非数组，Laravel自动编译为子查询，零PHP内存开销
             $subQuery = EnterpriseGradeClassesStudent::query()
                 ->select('student_id')
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
                 ->where('classes_id', $classes_id)
                 ->where('state', 1)
@@ -491,7 +491,7 @@ class AccessUserService extends AdminService
 
             // 3. 主查询：通过子查询关联 + 预加载家长信息
             $record = EnterprisePatriarchStudent::query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->whereIn('student_id', $subQuery) // 安全：生成 IN (SELECT ...) 而非 IN (1,2,3...)
                 ->with('patriarch') // 预加载，杜绝 N + 1 问题
                 ->get()
@@ -502,7 +502,7 @@ class AccessUserService extends AdminService
                     'user_type' => $user_type,
                     'id_card' => $item->patriarch?->id_card,
                     'mobile' => $item->patriarch?->mobile,
-                    'enterprise_id' => $item->enterprise_id,
+                    'organization_id' => $item->organization_id,
                     'open_type' => $open_type,
                     'state' => 1,
                     'sort' => intval($max + $index + 1),
@@ -519,7 +519,7 @@ class AccessUserService extends AdminService
             admin_abort_if(empty($department_id), '部门不能为空');
 
             $record = EnterpriseDepartmentJobWorker::query()
-                ->where('enterprise_id', $enterprise_id)
+                ->where('organization_id', $organization_id)
                 ->where('department_id', $department_id)
                 ->whereIn('state', [1, 2, 3, 4])
                 ->with('worker')
@@ -531,7 +531,7 @@ class AccessUserService extends AdminService
                     'user_type' => $user_type,
                     'id_card' => $item->worker?->id_card,
                     'mobile' => $item->worker?->mobile,
-                    'enterprise_id' => $item->enterprise_id,
+                    'organization_id' => $item->organization_id,
                     'open_type' => $open_type,
                     'state' => 1,
                     'sort' => intval($max + $index + 1),
@@ -545,7 +545,7 @@ class AccessUserService extends AdminService
         return admin_transaction(function () use ($record) {
             $this->query()->upsert(
                 $record->toArray(),
-                uniqueBy: ['user_id', 'user_type', 'enterprise_id', 'module', 'mer_id'], // 冲突判断字段
+                uniqueBy: ['user_id', 'user_type', 'organization_id', 'module', 'mer_id'], // 冲突判断字段
                 update: ['id_card', 'id_card_enc', 'mobile', 'mobile_enc', 'open_type', 'state'] // 冲突时更新的字段
             );
 
