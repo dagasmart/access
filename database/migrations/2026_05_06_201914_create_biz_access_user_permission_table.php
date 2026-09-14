@@ -18,8 +18,8 @@ return new class extends Migration
         && Schema::create($this->name, function (Blueprint $table) {
             $table->comment('数智校园-门禁用户权限表');
             $table->id();
-            $table->integer('access_user_id')->nullable()->index()->comment('门禁用户id');
-            $table->integer('access_device_id')->nullable()->index()->comment('门禁设备id');
+            $table->integer('access_user_id')->nullable()->comment('门禁用户id');
+            $table->integer('access_device_id')->nullable()->comment('门禁设备id');
             $table->integer('access_permission_id')->nullable()->comment('门禁权限id');
             $table->integer('access_permission_code')->nullable()->comment('门禁权限码');
             $table->string('auth_model', 16)->nullable()->default('days')->comment('授权类型:每天days、工作日workdays、自定义日期custom');
@@ -33,6 +33,12 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['id']);
+            // ✅ 2. 仅为级联删除和外键查询创建【单列】索引
+            // 联合索引的最左前缀原则无法高效支持中间列的等值查询/级联删除
+            $table->index('access_user_id');
+            $table->index('access_device_id');
+            $table->index('access_permission_id');
+            $table->index('auth_model');
         });
     }
 

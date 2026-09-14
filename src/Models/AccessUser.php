@@ -3,10 +3,10 @@
 namespace DagaSmart\Access\Models;
 
 use DagaSmart\BizAdmin\Traits\ModuleMerIdTrait;
-use DagaSmart\Organization\Models\Enterprise;
-use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
-use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
-use DagaSmart\Organization\Models\EnterprisePatriarchStudent;
+use DagaSmart\Basic\Models\Organization;
+use DagaSmart\Basic\Models\OrganizationDepartmentJobWorker;
+use DagaSmart\Basic\Models\OrganizationGradeClassesStudent;
+use DagaSmart\Basic\Models\OrganizationPatriarchStudent;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -80,24 +80,24 @@ class AccessUser extends Model
 
     public function student(): HasOne
     {
-        return $this->hasOne(EnterpriseGradeClassesStudent::class, 'student_id', 'user_id')
-            ->with(['enterprise', 'grade', 'classes']);
+        return $this->hasOne(OrganizationGradeClassesStudent::class, 'student_id', 'user_id')
+            ->with(['organization', 'grade', 'classes']);
     }
 
     public function patriarch(): HasOne
     {
-        return $this->hasOne(EnterprisePatriarchStudent::class, 'patriarch_id', 'user_id')
-            ->with(['enterprise', 'patriarch']);
+        return $this->hasOne(OrganizationPatriarchStudent::class, 'patriarch_id', 'user_id')
+            ->with(['organization', 'patriarch']);
     }
 
     public function worker(): HasOne
     {
-        return $this->hasOne(EnterpriseDepartmentJobWorker::class, 'worker_id', 'user_id')
-            ->with(['enterprise', 'department']);
+        return $this->hasOne(OrganizationDepartmentJobWorker::class, 'worker_id', 'user_id')
+            ->with(['organization', 'department']);
     }
 
     public function visitor(): HasOne
     {
-        return $this->hasOne(Enterprise::class, 'id', 'organization_id');
+        return $this->hasOne(Organization::class, 'id', 'organization_id');
     }
 }

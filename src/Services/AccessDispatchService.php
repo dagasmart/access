@@ -5,11 +5,11 @@ namespace DagaSmart\Access\Services;
 use DagaSmart\Access\Enums\Enum;
 use DagaSmart\Access\Models\AccessDispatch;
 use DagaSmart\Access\Models\AccessUser;
-use DagaSmart\Organization\Models\Device;
-use DagaSmart\Organization\Models\Enterprise;
-use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
-use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
-use DagaSmart\Organization\Services\EnterpriseService;
+use DagaSmart\Basic\Models\Device;
+use DagaSmart\Basic\Models\Organization;
+use DagaSmart\Basic\Models\OrganizationDepartmentJobWorker;
+use DagaSmart\Basic\Models\OrganizationGradeClassesStudent;
+use DagaSmart\Basic\Services\OrganizationService;
 use Illuminate\Database\Eloquent\Builder;
 use PhpMqtt\Client\Facades\MQTT;
 
@@ -97,7 +97,7 @@ class AccessDispatchService extends AdminService
 
         $organizationId = $data['organization_id'] ?? null;
         // ✅ 基础参数校验
-        admin_abort_if(! $organizationId, '【'.extend_trans('organization.enterprise_name').'】 必选项');
+        admin_abort_if(! $organizationId, '【'.extend_trans('basic.organization_name').'】 必选项');
 
         $userType = $data['user_type'] ?? null;
         admin_abort_if(
@@ -150,7 +150,7 @@ class AccessDispatchService extends AdminService
             }
             if ($userType == 'patriarch') {
                 admin_abort_if(! $classesId, '【年级/班级】 必选项');
-                $subQuery = EnterpriseGradeClassesStudent::query()
+                $subQuery = OrganizationGradeClassesStudent::query()
                     ->select('student_id')
                     ->where('organization_id', $organizationId)
                     ->where('grade_id', $gradeId)
@@ -169,7 +169,7 @@ class AccessDispatchService extends AdminService
             }
             if ($userType == 'worker') {
                 admin_abort_if(! $departmentId, '【部门】 必选项');
-                $subQuery = EnterpriseDepartmentJobWorker::query()
+                $subQuery = OrganizationDepartmentJobWorker::query()
                     ->select('worker_id')
                     ->where('organization_id', $organizationId)
                     ->where('department_id', $departmentId)
@@ -253,16 +253,16 @@ class AccessDispatchService extends AdminService
      */
     public static function getNavList(): array
     {
-        return Enterprise::query()
+        return Organization::query()
             ->whereHas('bind')
             ->where('state', 1)
             ->orderBy('id')
-            ->get(['id', 'enterprise_name as name'])
+            ->get(['id', 'organization_name as name'])
             ->map(function ($res) {
                 return [
                     'label' => $res->name,
                     'value' => $res->id,
-                    'to' => admin_url('extension/access/dispatch?organization_id='.$res->id.'&enterprise_name='.$res->name),
+                    'to' => admin_url('extension/access/dispatch?organization_id='.$res->id.'&organization_name='.$res->name),
                     'active' => $res->id === (int) request('organization_id'),
                     'activeOn' => $res->id === (int) request('organization_id'),
                 ];
@@ -273,11 +273,11 @@ class AccessDispatchService extends AdminService
     /**
      * 机构单位列表
      */
-    public function getEnterpriseAll(): array
+    public function getOrganizationAll(): array
     {
-        $model = new EnterpriseService;
+        $model = new OrganizationService;
 
-        return $model->getEnterpriseAll();
+        return $model->getOrganizationAll();
     }
 
     /**

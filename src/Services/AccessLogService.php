@@ -3,8 +3,8 @@
 namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessLog;
-use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
-use DagaSmart\Organization\Services\EnterpriseService;
+use DagaSmart\Basic\Models\OrganizationFacilityDevice;
+use DagaSmart\Basic\Services\OrganizationService;
 use Illuminate\Database\Eloquent\Builder;
 
 
@@ -61,19 +61,19 @@ class AccessLogService extends AdminService
         ];
         admin_transaction(function () use ($data) {
             if ($data['device_id']) {
-                EnterpriseFacilityDevice::query()->where($data)->delete();
+                OrganizationFacilityDevice::query()->where($data)->delete();
             }
-            EnterpriseFacilityDevice::query()->insert($data);
+            OrganizationFacilityDevice::query()->insert($data);
         });
     }
 
     /**
      * 机构单位列表
      */
-    public function getEnterpriseAll(): array
+    public function getOrganizationAll(): array
     {
-        return (new EnterpriseService)->query()
-            ->select(['id as value', 'enterprise_name as label', 'id'])
+        return (new OrganizationService)->query()
+            ->select(['id as value', 'organization_name as label', 'id'])
             ->get()
             ->toArray();
     }
@@ -87,7 +87,7 @@ class AccessLogService extends AdminService
         $id = request()->id;
         $organization_id = request()->organization_id;
         $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b','a.id','=','b.facility_id')
+            ->join('biz_organization_facility as b','a.id','=','b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
             ->when($organization_id, function($query) use ($organization_id) {
                 $query->where('b.organization_id', $organization_id);

@@ -4,11 +4,11 @@ namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Enums\Enum;
 use DagaSmart\Access\Models\AccessUser;
-use DagaSmart\Organization\Models\EnterpriseDepartmentJobWorker;
-use DagaSmart\Organization\Models\EnterpriseGradeClassesStudent;
-use DagaSmart\Organization\Models\EnterprisePatriarchStudent;
-use DagaSmart\Organization\Models\Visitor;
-use DagaSmart\Organization\Services\StudentService;
+use DagaSmart\Basic\Models\OrganizationDepartmentJobWorker;
+use DagaSmart\Basic\Models\OrganizationGradeClassesStudent;
+use DagaSmart\Basic\Models\OrganizationPatriarchStudent;
+use DagaSmart\Basic\Models\Visitor;
+use DagaSmart\Basic\Services\StudentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -154,11 +154,11 @@ class AccessUserService extends AdminService
     /**
      * 单位列表
      */
-    public function getEnterpriseAll(): array
+    public function getOrganizationAll(): array
     {
         $student = new StudentService;
 
-        return $student->getEnterpriseAll();
+        return $student->getOrganizationAll();
     }
 
     /**
@@ -195,7 +195,7 @@ class AccessUserService extends AdminService
         // ✅ 基础参数校验
         admin_abort_if(
             ! $organizationId,
-            '【'.extend_trans('organization.enterprise_name').'】 必选项'
+            '【'.extend_trans('basic.organization_name').'】 必选项'
         );
 
         admin_abort_if(
@@ -232,7 +232,7 @@ class AccessUserService extends AdminService
                 ->values();
 
         } elseif ($userType == 'patriarch') {
-            $subQuery = EnterpriseGradeClassesStudent::query()
+            $subQuery = OrganizationGradeClassesStudent::query()
                 ->select('student_id')
                 ->where('organization_id', $organizationId)
                 ->where('grade_id', $gradeId)
@@ -252,7 +252,7 @@ class AccessUserService extends AdminService
                 ->unique('user_id') // 在集合层按 user_id 去重，比 distinct() 更可靠
                 ->values();
         } elseif ($userType == 'worker') {
-            $subQuery = EnterpriseDepartmentJobWorker::query()
+            $subQuery = OrganizationDepartmentJobWorker::query()
                 ->select('worker_id')
                 ->where('organization_id', $organizationId)
                 ->where('department_id', $departmentId)
@@ -303,7 +303,7 @@ class AccessUserService extends AdminService
         $id = request()->id;
         $organization_id = request()->organization_id;
         $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
+            ->join('biz_organization_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
             ->when($organization_id, function ($query) use ($organization_id) {
                 $query->where('b.organization_id', $organization_id);
@@ -344,7 +344,7 @@ class AccessUserService extends AdminService
             admin_abort_if(empty($grade_id), '年级不能为空');
             admin_abort_if(empty($classes_id), '班级不能为空');
 
-            $record = EnterpriseGradeClassesStudent::query()
+            $record = OrganizationGradeClassesStudent::query()
                 ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
                 ->where('classes_id', $classes_id)
@@ -369,7 +369,7 @@ class AccessUserService extends AdminService
 
             // 2. 构建学生ID子查询（不执行，仅作为SQL片段）
             // ⚠️ 核心：传入Builder对象而非数组，Laravel自动编译为子查询，零PHP内存开销
-            $subQuery = EnterpriseGradeClassesStudent::query()
+            $subQuery = OrganizationGradeClassesStudent::query()
                 ->select('student_id')
                 ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
@@ -378,7 +378,7 @@ class AccessUserService extends AdminService
                 ->groupBy('student_id'); // groupBy 替代 distinct，避免临时表排序开销
 
             // 3. 主查询：通过子查询关联 + 预加载家长信息
-            $record = EnterprisePatriarchStudent::query()
+            $record = OrganizationPatriarchStudent::query()
                 ->where('organization_id', $organization_id)
                 ->whereIn('student_id', $subQuery) // 安全：生成 IN (SELECT ...) 而非 IN (1,2,3...)
                 ->with('patriarch') // 预加载，杜绝 N + 1 问题
@@ -396,7 +396,7 @@ class AccessUserService extends AdminService
 
         if ($user_type == 'worker') {
             admin_abort_if(empty($department_id), '部门不能为空');
-            $record = EnterpriseDepartmentJobWorker::query()
+            $record = OrganizationDepartmentJobWorker::query()
                 ->where('organization_id', $organization_id)
                 ->where('department_id', $department_id)
                 ->whereIn('state', [1, 2, 3, 4])
@@ -446,7 +446,7 @@ class AccessUserService extends AdminService
             admin_abort_if(empty($grade_id), '年级不能为空');
             admin_abort_if(empty($classes_id), '班级不能为空');
 
-            $record = EnterpriseGradeClassesStudent::query()
+            $record = OrganizationGradeClassesStudent::query()
                 ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
                 ->where('classes_id', $classes_id)
@@ -481,7 +481,7 @@ class AccessUserService extends AdminService
 
             // 2. 构建学生ID子查询（不执行，仅作为SQL片段）
             // ⚠️ 核心：传入Builder对象而非数组，Laravel自动编译为子查询，零PHP内存开销
-            $subQuery = EnterpriseGradeClassesStudent::query()
+            $subQuery = OrganizationGradeClassesStudent::query()
                 ->select('student_id')
                 ->where('organization_id', $organization_id)
                 ->where('grade_id', $grade_id)
@@ -490,7 +490,7 @@ class AccessUserService extends AdminService
                 ->groupBy('student_id'); // groupBy 替代 distinct，避免临时表排序开销
 
             // 3. 主查询：通过子查询关联 + 预加载家长信息
-            $record = EnterprisePatriarchStudent::query()
+            $record = OrganizationPatriarchStudent::query()
                 ->where('organization_id', $organization_id)
                 ->whereIn('student_id', $subQuery) // 安全：生成 IN (SELECT ...) 而非 IN (1,2,3...)
                 ->with('patriarch') // 预加载，杜绝 N + 1 问题
@@ -518,7 +518,7 @@ class AccessUserService extends AdminService
             // 1. 入口参数校验（保持原有安全校验）
             admin_abort_if(empty($department_id), '部门不能为空');
 
-            $record = EnterpriseDepartmentJobWorker::query()
+            $record = OrganizationDepartmentJobWorker::query()
                 ->where('organization_id', $organization_id)
                 ->where('department_id', $department_id)
                 ->whereIn('state', [1, 2, 3, 4])

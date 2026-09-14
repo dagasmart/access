@@ -26,17 +26,17 @@ class AccessPermissionController extends AdminController
             ->autoFillHeight(true)
             ->combineNum(1)
             ->columns([
-                amis()->TableColumn('organization_id', module_enterprise_alias())
+                amis()->TableColumn('organization_id', module_organization_alias())
                     ->sortable()
                     ->searchable([
                         'name' => 'organization_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,
-                        'options' => $this->service->getEnterpriseAll(),
+                        'options' => $this->service->getOrganizationAll(),
                     ])
                     ->set('type', 'select')
-                    ->set('options', $this->service->getEnterpriseAll())
+                    ->set('options', $this->service->getOrganizationAll())
                     ->set('static', true)
                     ->set('fixed', 'left')
                     ->width(200),
@@ -260,9 +260,9 @@ class AccessPermissionController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('基本信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('normal')->body([
-                        amis()->SelectControl('organization_id', module_enterprise_alias())
-                            ->options($this->service->getEnterpriseAll())
-                            ->value('${rel.enterprise_name}')
+                        amis()->SelectControl('organization_id', module_organization_alias())
+                            ->options($this->service->getOrganizationAll())
+                            ->value('${rel.organization_name}')
                             ->size('lg')
                             ->searchable()
                             ->clearable()
@@ -273,7 +273,7 @@ class AccessPermissionController extends AdminController
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
                             ->options($this->service->permissionCode())
-                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/permission/${id||0}/code'))
+                            ->source(admin_url('extension/access/organization/${organization_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
                             ->disabledOn('${!organization_id}')
@@ -378,9 +378,9 @@ class AccessPermissionController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('基本信息')->icon('menu')->body([
                     amis()->GroupControl()->mode('normal')->body([
-                        amis()->SelectControl('organization_id', module_enterprise_alias())
-                            ->options($this->service->getEnterpriseAll())
-                            ->value('${rel.enterprise_name}')
+                        amis()->SelectControl('organization_id', module_organization_alias())
+                            ->options($this->service->getOrganizationAll())
+                            ->value('${rel.organization_name}')
                             ->size('lg')
                             ->searchable()
                             ->clearable()
@@ -391,7 +391,7 @@ class AccessPermissionController extends AdminController
                             ->required(),
                         amis()->SelectControl('permission_code', '权限码')
                             ->options($this->service->permissionCode())
-                            ->source(admin_url('extension/access/enterprise/${organization_id||0}/permission/${id||0}/code'))
+                            ->source(admin_url('extension/access/organization/${organization_id||0}/permission/${id||0}/code'))
                             ->size('sm')
                             ->value('${rel.permission_name}')
                             ->disabledOn('${!organization_id}')

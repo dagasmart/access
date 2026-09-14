@@ -3,8 +3,8 @@
 namespace DagaSmart\Access\Services;
 
 use DagaSmart\Access\Models\AccessDevice;
-use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
-use DagaSmart\Organization\Services\EnterpriseService;
+use DagaSmart\Basic\Models\OrganizationFacilityDevice;
+use DagaSmart\Basic\Services\OrganizationService;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -87,7 +87,7 @@ class AccessDeviceService extends AdminService
             admin_transaction(function () use ($priKey, $values) {
                 // 如果记录已存在则更新，不存在则创建
                 // 前提：数据库有对应的联合唯一索引
-                EnterpriseFacilityDevice::updateOrCreate(
+                OrganizationFacilityDevice::updateOrCreate(
                     $priKey,  // 查找条件
                     $values // 更新/创建的值
                 );
@@ -98,11 +98,11 @@ class AccessDeviceService extends AdminService
     /**
      * 机构单位列表
      */
-    public function getEnterpriseAll(): array
+    public function getOrganizationAll(): array
     {
-        $model = new EnterpriseService;
+        $model = new OrganizationService;
 
-        return $model->getEnterpriseAll();
+        return $model->getOrganizationAll();
     }
 
     /**
@@ -110,7 +110,7 @@ class AccessDeviceService extends AdminService
      */
     public function deviceAll(): array
     {
-        $model = new EnterpriseFacilityDevice;
+        $model = new OrganizationFacilityDevice;
 
         return $model->with('device')
             ->get()
@@ -130,7 +130,7 @@ class AccessDeviceService extends AdminService
         }
 
         $data = $this->query()->from('biz_facility as a')
-            ->join('biz_enterprise_facility as b', 'a.id', '=', 'b.facility_id')
+            ->join('biz_organization_facility as b', 'a.id', '=', 'b.facility_id')
             ->select(['a.id as value', 'a.facility_name as label', 'a.id', 'a.parent_id'])
             ->when($organization_id, function ($query) use ($organization_id) {
                 $query->where('b.organization_id', $organization_id);

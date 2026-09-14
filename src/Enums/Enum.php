@@ -3,7 +3,7 @@
 namespace DagaSmart\Access\Enums;
 
 use DagaSmart\BizAdmin\Enums\Enum as Enums;
-use DagaSmart\Organization\Enums\Enum as OrganizationEnum;
+use DagaSmart\Basic\Enums\Enum as OrganizationEnum;
 
 enum Enum
 {

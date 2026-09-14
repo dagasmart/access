@@ -6,7 +6,7 @@ use DagaSmart\Access\Services\AccessDeviceService;
 use DagaSmart\BizAdmin\Renderers\Form;
 use DagaSmart\BizAdmin\Renderers\Page;
 use DagaSmart\BizAdmin\Support\Cores\AdminPipeline;
-use DagaSmart\Organization\Enums\Enum;
+use DagaSmart\Basic\Enums\Enum;
 
 /**
  * 基础-设备类
@@ -45,16 +45,16 @@ class AccessDeviceController extends AdminController
                     ])
                     ->copyable()
                     ->width(150),
-                amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
+                amis()->TableColumn('rel.organization.organization_name', '机构单位')
                     ->searchable(
                         amis()->FormControl()->body([
                             amis()->SelectControl('organization_id', '机构单位')
-                                ->options($this->service->getEnterpriseAll())
+                                ->options($this->service->getOrganizationAll())
                                 ->placeholder('请选择机构单位')
                                 ->searchable()
                                 ->clearable(),
                             amis()->TreeSelectControl('facility_id', '设施主体')
-                                ->source(admin_url('extension/access/enterprise/${organization_id||0}/facility/options'))
+                                ->source(admin_url('extension/access/organization/${organization_id||0}/facility/options'))
                                 ->disabledOn('${!organization_id}')
                                 ->placeholder('请选择设施主体')
                                 ->onlyChildren()
@@ -117,13 +117,13 @@ class AccessDeviceController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('单位主体')->icon('menu')->body([
                     amis()->SelectControl('organization_id', '机构单位')
-                        ->options($this->service->getEnterpriseAll())
+                        ->options($this->service->getOrganizationAll())
                         ->value('${rel.organization_id}')
                         ->searchable()
                         ->clearable()
                         ->required(),
                     amis()->TreeSelectControl('facility_id', '设施主体')
-                        ->source(admin_url('extension/enterprise/${organization_id||0}/facility/options'))
+                        ->source(admin_url('extension/organization/${organization_id||0}/facility/options'))
                         ->options($this->service->options())
                         ->value('${rel.facility.id}')
                         ->disabledOn('${!organization_id}')
@@ -200,7 +200,7 @@ class AccessDeviceController extends AdminController
             amis()->Tabs()->tabsMode('line')->tabs([
                 amis()->Tab()->title('单位主体')->icon('menu')->body([
                     amis()->StaticExactControl('id', 'ID')->visibleOn('${id}'),
-                    amis()->TextControl('rel.enterprise.enterprise_name', '机构单位')
+                    amis()->TextControl('rel.organization.organization_name', '机构单位')
                         ->required()
                         ->static(),
                     amis()->TextControl('rel.facility.level_name', '选择主体')

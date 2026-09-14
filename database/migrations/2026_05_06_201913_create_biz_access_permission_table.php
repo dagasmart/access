@@ -18,21 +18,28 @@ return new class extends Migration
         && Schema::create($this->name, function (Blueprint $table) {
             $table->comment('数智校园-门禁权限表');
             $table->id();
-            $table->tinyInteger('permission_code')->nullable()->index()->comment('权限标识');
+            $table->tinyInteger('permission_code')->nullable()->comment('权限标识');
             $table->string('permission_name', 32)->nullable()->comment('权限名称');
             $table->json('permission_combo')->nullable()->comment('权限内容');
-            $table->tinyInteger('is_exclude')->nullable()->default(0)->index()->comment('是否禁止');
+            $table->tinyInteger('is_exclude')->nullable()->default(0)->comment('是否禁止');
             $table->json('exclude_date')->nullable()->comment('是否禁止');
-            $table->tinyInteger('is_allow')->nullable()->default(0)->index()->comment('是否允许');
+            $table->tinyInteger('is_allow')->nullable()->default(0)->comment('是否允许');
             $table->json('allow_date')->nullable()->comment('允许日期');
-            $table->integer('organization_id')->nullable()->index()->comment('机构单位');
+            $table->integer('organization_id')->nullable()->comment('机构单位');
             $table->json('body')->nullable();
-            $table->string('module', 32)->nullable()->index();
-            $table->integer('mer_id')->nullable()->index();
+            $table->string('module', 32)->nullable();
+            $table->integer('mer_id')->nullable();
             $table->timestamp('created_at')->nullable()->useCurrent();
             $table->timestamp('updated_at')->nullable()->useCurrent();
 
             $table->index(['id']);
+            $table->index(['permission_code']);
+            $table->index(['is_exclude']);
+            $table->index(['is_allow']);
+            $table->index(['organization_id']);
+            $table->index(['module']);
+            $table->index(['mer_id']);
+
             $table->unique(['permission_code', 'organization_id', 'module', 'mer_id'])->nullsNotDistinct();
         });
     }

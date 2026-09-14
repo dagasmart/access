@@ -97,13 +97,13 @@ class AccessDispatchController extends AdminController
     {
         $crud = $this->baseCRUD()
             ->id('dispatch-crud') // 供左侧导航和刷新使用的 CRUD 容器 ID
-            ->data(['module_enterprise_alias' => extend_trans('organization.enterprise_name')])
+            ->data(['module_organization_alias' => extend_trans('basic.organization_name')])
             ->filterTogglable(false)
             ->headerToolbar([
                 $this->createButton('drawer'),
                 ...$this->baseHeaderToolBar(),
                 // 当前分类说明，提示用户正在查看哪个分类下的分发
-                amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_enterprise_alias}：</span><b>${enterprise_name || "全部"}</b>')->className('text-current')->align('right'),
+                amis()->Tpl()->tpl('<span class="text-secondary font-thin">${module_organization_alias}：</span><b>${organization_name || "全部"}</b>')->className('text-current')->align('right'),
             ])
             ->combineNum(0)
             ->autoFillHeight(true)
@@ -159,23 +159,23 @@ class AccessDispatchController extends AdminController
                     ->set('multiple', true)
                     ->set('static', true),
 
-                amis()->TableColumn('device.facility_id', extend_trans('organization.enterprise_name').'/设备信息')
+                amis()->TableColumn('device.facility_id', extend_trans('basic.organization_name').'/设备信息')
                     ->searchable(amis()->FormControl()->body([
-                        amis()->SelectControl('organization_id', '${module_enterprise_alias}')
-                            ->options($this->service->getEnterpriseAll())
-                            ->autoFill(['enterprise_name' => '${label}'])
+                        amis()->SelectControl('organization_id', '${module_organization_alias}')
+                            ->options($this->service->getOrganizationAll())
+                            ->autoFill(['organization_name' => '${label}'])
                             ->searchable()
                             ->clearable(),
-                        amis()->HiddenControl('enterprise_name', '${module_enterprise_alias}'),
+                        amis()->HiddenControl('organization_name', '${module_organization_alias}'),
                         amis()->TreeSelectControl('facility_id', '设施主体')
-                            ->source(admin_url('extension/enterprise/${organization_id||0}/facility/options'))
+                            ->source(admin_url('extension/organization/${organization_id||0}/facility/options'))
                             ->searchable()
                             ->disabledOn('${!organization_id}')
                             ->onlyLeaf()
                             ->clearable(),
                         amis()->TextControl('device_name', '设备名称')->placeholder('请输入查找的设备名称')->clearable(),
                         amis()->SelectControl('device_id', '设备编号')
-                            ->source(admin_url('extension/enterprise/${organization_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                            ->source(admin_url('extension/organization/${organization_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
                             ->options($this->service->getDeviceAll())
                             ->placeholder('请输入查找的设备编号')
                             ->clearValueOnSourceChange()
@@ -184,7 +184,7 @@ class AccessDispatchController extends AdminController
                             ->clearable(),
                     ]))
                     ->set('type', 'tpl')
-                    ->set('tpl', '${device.rel.enterprise.enterprise_name}<h5 class="m-0 mt-1 text-secondary">设施：${device.rel.facility.level_name}</h5><h5 class="m-0 mt-1 text-secondary">名称：${device.device_name}</h5><h5 class="m-0 mt-1 text-secondary">编号：${device.device_sn}</h5>')
+                    ->set('tpl', '${device.rel.organization.organization_name}<h5 class="m-0 mt-1 text-secondary">设施：${device.rel.facility.level_name}</h5><h5 class="m-0 mt-1 text-secondary">名称：${device.device_name}</h5><h5 class="m-0 mt-1 text-secondary">编号：${device.device_sn}</h5>')
                     ->width(180),
 
                 amis()->TableColumn('sort', '优先级')
@@ -235,15 +235,15 @@ class AccessDispatchController extends AdminController
         return $this->baseForm()
             ->data(['organization_id' => '${organization_id}'])
             ->body([
-                amis()->SelectControl('organization_id', extend_trans('organization.enterprise_name'))
-                    ->options($this->service->getEnterpriseAll())
+                amis()->SelectControl('organization_id', extend_trans('basic.organization_name'))
+                    ->options($this->service->getOrganizationAll())
                     ->value('${device.rel.organization_id}')
                     ->searchable()
                     ->clearable()
                     ->disabled($isEdit)
                     ->required(),
                 amis()->TreeSelectControl('facility_id', '设施主体')
-                    ->source(admin_url('extension/enterprise/${organization_id||0}/facility/options'))
+                    ->source(admin_url('extension/organization/${organization_id||0}/facility/options'))
                     ->value('${device.rel.facility_id}')
                     ->disabledOn('${!organization_id}')
                     ->clearValueOnSourceChange()
@@ -252,7 +252,7 @@ class AccessDispatchController extends AdminController
                     ->clearable()
                     ->required(),
                 amis()->TreeSelectControl('device_brand', '设备品牌')
-                    ->source(admin_url('extension/enterprise/device/access/brand/options'))
+                    ->source(admin_url('extension/organization/device/access/brand/options'))
                     ->value('${device.device_brand}')
                     ->placeholder('请选择品牌')
                     ->disabledOn('${!facility_id}')
@@ -260,7 +260,7 @@ class AccessDispatchController extends AdminController
                     ->searchable()
                     ->clearable(),
                 amis()->SelectControl('device_id', '分发设备')
-                    ->source(admin_url('extension/enterprise/${organization_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
+                    ->source(admin_url('extension/organization/${organization_id||0}/facility/${facility_id||0}/device/access/brand/${device_brand||0}/options'))
                     ->options($this->service->getDeviceAll())
                     ->value('${device.id}')
                     ->placeholder('请选择设备')
@@ -279,14 +279,14 @@ class AccessDispatchController extends AdminController
                     ->required()
                     ->static($isEdit),
                 amis()->TreeSelectControl('grade_id', '年级')
-                    ->source(admin_url('extension/enterprise/${organization_id||0}/grade'))
+                    ->source(admin_url('extension/organization/${organization_id||0}/grade'))
                     ->disabledOn('${!organization_id}')
                     ->searchable()
                     ->onlyLeaf()
                     ->required(! $isEdit)
                     ->visibleOn('${ARRAYINCLUDES(["student", "patriarch"], user_type) && !!organization_id}'),
                 amis()->SelectControl('classes_id', '班级')
-                    ->source(admin_url('extension/enterprise/${organization_id||0}/grade/${grade_id||0}/classes'))
+                    ->source(admin_url('extension/organization/${organization_id||0}/grade/${grade_id||0}/classes'))
                     ->disabledOn('${!grade_id}')
                     ->searchable()
                     ->clearable()
@@ -311,7 +311,7 @@ class AccessDispatchController extends AdminController
                     ->visible(! $isEdit)
                     ->visibleOn('${ARRAYINCLUDES(["worker"], user_type) && !!organization_id}'),
                 amis()->SelectControl('access_user_id', '用户')
-                    ->source(admin_url('extension/access/enterprise/${organization_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
+                    ->source(admin_url('extension/access/organization/${organization_id||0}/department/${department_id||0}/grade/${grade_id||0}/classes/${classes_id||0}/user/${user_type||0}/is_boarder/${is_boarder||"0,1"}/all'))
                     ->disabledOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !organization_id)}')
 //                ->selectMode('table')
 //                ->columns([
@@ -327,7 +327,7 @@ class AccessDispatchController extends AdminController
                     ->visibleOn('${(ARRAYINCLUDES(["student", "patriarch"], user_type) && !!classes_id) || (ARRAYINCLUDES(["worker"], user_type) && !!department_id) || (ARRAYINCLUDES(["visitor"], user_type) && !!organization_id)}'),
                 amis()->SelectControl('permission_id', '权限')
                     ->source([
-                        'url' => admin_url('extension/access/enterprise/${organization_id||0}/permission/data'),
+                        'url' => admin_url('extension/access/organization/${organization_id||0}/permission/data'),
                         'method' => 'get',
                         'sendOn' => '${!!organization_id}', // 防止无效请求
                     ])
@@ -362,7 +362,7 @@ class AccessDispatchController extends AdminController
     public function detail()
     {
         return $this->baseForm()->body([
-            amis()->StaticExactControl('enterprise_name', module_enterprise_alias())->value('${device.rel.enterprise.enterprise_name}'),
+            amis()->StaticExactControl('organization_name', module_organization_alias())->value('${device.rel.organization.organization_name}'),
             amis()->StaticExactControl('facility_name', '设施主体')->value('${device.rel.facility.level_name}'),
             amis()->StaticExactControl('device_brand', '设备品牌')->value('${device.device_brand}'),
             amis()->StaticExactControl('device_name', '设备名称')->value('${device.device_name}'),
@@ -372,14 +372,14 @@ class AccessDispatchController extends AdminController
                 ->value('${user.user_type}')
                 ->static(),
             amis()->TreeSelectControl('grade_id', '年级')
-                ->source(admin_url('extension/enterprise/${organization_id||0}/grade'))
+                ->source(admin_url('extension/organization/${organization_id||0}/grade'))
                 ->disabledOn('${!organization_id}')
                 ->searchable()
                 ->onlyLeaf()
                 ->required()
                 ->visibleOn('${(user_type === "student" || user_type === "patriarch") && !!organization_id}'),
             amis()->SelectControl('classes_id', '班级')
-                ->source(admin_url('extension/enterprise/${organization_id||0}/grade/${grade_id||0}/classes'))
+                ->source(admin_url('extension/organization/${organization_id||0}/grade/${grade_id||0}/classes'))
                 ->disabledOn('${!grade_id}')
                 ->searchable()
                 ->required()

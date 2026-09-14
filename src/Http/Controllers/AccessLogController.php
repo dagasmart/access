@@ -60,13 +60,13 @@ class AccessLogController extends AdminController
                     ->set('enlargeWithGallary', false)
                     ->set('showToolbar', true)
                     ->set('enlargeTitle', '现场实拍'),
-                amis()->TableColumn('rel.enterprise.enterprise_name', '机构单位')
+                amis()->TableColumn('rel.organization.organization_name', '机构单位')
                     ->searchable([
                         'name' => 'organization_id',
                         'type' => 'select',
                         'multiple' => false,
                         'searchable' => true,
-                        'options' => $this->service->getEnterpriseAll(),
+                        'options' => $this->service->getOrganizationAll(),
                     ])
                     ->width(200),
                 amis()->TableColumn('rel.facility.level_name', '设施主体')
@@ -120,7 +120,7 @@ class AccessLogController extends AdminController
                         amis()->GroupControl()->direction('vertical')->body([
                             amis()->StaticExactControl('user_id', 'ID')->visibleOn('${id}'),
                             amis()->StaticExactControl('user_name', '用户'),
-                            amis()->StaticExactControl('rel.enterprise.enterprise_name', '机构单位'),
+                            amis()->StaticExactControl('rel.organization.organization_name', '机构单位'),
                             amis()->StaticExactControl('rel.facility.facility_name', '设施主体'),
                             amis()->StaticExactControl('rel.device.device_name', '设备名称'),
                             amis()->StaticExactControl('rel.device.device_sn', '设备编码'),

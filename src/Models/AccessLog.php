@@ -2,7 +2,7 @@
 
 namespace DagaSmart\Access\Models;
 
-use DagaSmart\Organization\Models\EnterpriseFacilityDevice;
+use DagaSmart\Basic\Models\OrganizationFacilityDevice;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -23,7 +23,7 @@ class AccessLog extends Model
 
     public function rel(): HasOne
     {
-        return $this->hasOne(EnterpriseFacilityDevice::class, 'device_id', 'device_id')->with(['enterprise', 'facility', 'device']);
+        return $this->hasOne(OrganizationFacilityDevice::class, 'device_id', 'device_id')->with(['organization', 'facility', 'device']);
     }
 
     public function user(): HasOne

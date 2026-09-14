@@ -4,7 +4,7 @@ namespace DagaSmart\Access\Models;
 
 use DagaSmart\Access\Enums\Enum;
 use DagaSmart\BizAdmin\Traits\ModuleMerIdTrait;
-use DagaSmart\Organization\Models\Enterprise;
+use DagaSmart\Basic\Models\Organization;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -72,7 +72,7 @@ class AccessPermission extends Model
 
     public function rel(): HasOne
     {
-        return $this->hasOne(Enterprise::class, 'id', 'organization_id')->select(['id', 'enterprise_name']);
+        return $this->hasOne(Organization::class, 'id', 'organization_id')->select(['id', 'organization_name']);
     }
 
     /**
