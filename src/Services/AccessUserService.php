@@ -195,7 +195,7 @@ class AccessUserService extends AdminService
         // ✅ 基础参数校验
         admin_abort_if(
             ! $organizationId,
-            '【'.extend_trans('basic.organization_name').'】 必选项'
+            '【'.basic_trans('basic.organization_name').'】 必选项'
         );
 
         admin_abort_if(

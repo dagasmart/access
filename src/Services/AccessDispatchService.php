@@ -97,7 +97,7 @@ class AccessDispatchService extends AdminService
 
         $organizationId = $data['organization_id'] ?? null;
         // ✅ 基础参数校验
-        admin_abort_if(! $organizationId, '【'.extend_trans('basic.organization_name').'】 必选项');
+        admin_abort_if(! $organizationId, '【'.basic_trans('basic.organization_name').'】 必选项');
 
         $userType = $data['user_type'] ?? null;
         admin_abort_if(

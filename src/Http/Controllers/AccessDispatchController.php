@@ -97,7 +97,7 @@ class AccessDispatchController extends AdminController
     {
         $crud = $this->baseCRUD()
             ->id('dispatch-crud') // 供左侧导航和刷新使用的 CRUD 容器 ID
-            ->data(['module_organization_alias' => extend_trans('basic.organization_name')])
+            ->data(['module_organization_alias' => basic_trans('basic.organization_name')])
             ->filterTogglable(false)
             ->headerToolbar([
                 $this->createButton('drawer'),
@@ -159,7 +159,7 @@ class AccessDispatchController extends AdminController
                     ->set('multiple', true)
                     ->set('static', true),
 
-                amis()->TableColumn('device.facility_id', extend_trans('basic.organization_name').'/设备信息')
+                amis()->TableColumn('device.facility_id', basic_trans('basic.organization_name').'/设备信息')
                     ->searchable(amis()->FormControl()->body([
                         amis()->SelectControl('organization_id', '${module_organization_alias}')
                             ->options($this->service->getOrganizationAll())
@@ -235,7 +235,7 @@ class AccessDispatchController extends AdminController
         return $this->baseForm()
             ->data(['organization_id' => '${organization_id}'])
             ->body([
-                amis()->SelectControl('organization_id', extend_trans('basic.organization_name'))
+                amis()->SelectControl('organization_id', basic_trans('basic.organization_name'))
                     ->options($this->service->getOrganizationAll())
                     ->value('${device.rel.organization_id}')
                     ->searchable()
